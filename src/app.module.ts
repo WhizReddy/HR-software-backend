@@ -19,10 +19,8 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { SalaryModule } from './salary/salary.module';
 import { ProjectModule } from './project/project.module';
 import { RatingsModule } from './ratings/ratings.module';
-import { PromotionModule } from './promotion/promotion.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -85,9 +83,7 @@ import { ChatModule } from './chat/chat.module';
     FirebaseModule,
     SalaryModule,
     ProjectModule,
-    PromotionModule,
     RatingsModule,
-    ChatModule,
   ],
   controllers: [AppController],
   providers: [
@@ -98,4 +94,4 @@ import { ChatModule } from './chat/chat.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

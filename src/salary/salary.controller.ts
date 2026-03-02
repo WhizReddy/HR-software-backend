@@ -17,7 +17,7 @@ import { Role } from 'src/common/enum/role.enum';
 export class SalaryController {
   constructor(private readonly salaryService: SalaryService) {}
 
-  @Roles(Role.HR)
+  @Roles(Role.HR, Role.ADMIN)
   @Post()
   create(@Body() createSalaryDto: CreateSalaryDto) {
     return this.salaryService.create(createSalaryDto);

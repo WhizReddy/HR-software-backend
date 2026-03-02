@@ -53,7 +53,7 @@ export class UserController {
     return await this.userService.updateUser(updateUserDto, id);
   }
 
-  @Roles(Role.HR)
+  @Roles(Role.HR, Role.ADMIN)
   @Delete(':id')
   async deleteUser(@Param('id') id: string): Promise<void> {
     await this.userService.deleteUser(id);

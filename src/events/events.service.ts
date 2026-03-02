@@ -39,7 +39,7 @@ export class EventsService {
     private notificationService: NotificationService,
     private readonly firebaseService: FirebaseService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
   async create(
     files: Express.Multer.File[],
@@ -112,20 +112,28 @@ export class EventsService {
         readers,
       );
 
-      await this.mailService.sendMail({
-        to:
-          createEventDto.participants?.length === 0 ||
-          !createEventDto.participants
-            ? await getAllParticipants(this.userModel, this.authModel)
-            : createEventDto.participants,
-        subject: `${createdEvent.title} - ${createdEvent.type}`,
-        template: './event',
-        context: {
-          name: `${createdEvent.description}`,
-        },
-      });
+      // Save the event FIRST so it persists even if email sending fails
+      const savedEvent = await createdEvent.save();
 
-      return await createdEvent.save();
+      // Send email notifications — non-blocking, failures are logged not thrown
+      try {
+        await this.mailService.sendMail({
+          to:
+            createEventDto.participants?.length === 0 ||
+              !createEventDto.participants
+              ? await getAllParticipants(this.userModel, this.authModel)
+              : createEventDto.participants,
+          subject: `${createdEvent.title} - ${createdEvent.type}`,
+          template: './event',
+          context: {
+            name: `${createdEvent.description}`,
+          },
+        });
+      } catch (mailError) {
+        console.warn('Event created but email notification failed:', mailError?.message || mailError);
+      }
+
+      return savedEvent;
     } catch (error) {
       throw new ConflictException(error);
     }

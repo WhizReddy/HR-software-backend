@@ -23,9 +23,9 @@ import { Role } from 'src/common/enum/role.enum';
 
 @Controller('event')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(private readonly eventsService: EventsService) { }
 
-  @Roles(Role.HR)
+  @Roles(Role.HR, Role.ADMIN)
   @Post()
   @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 10 }]))
   @UsePipes(new FileMimeTypeValidationPipe())
@@ -79,7 +79,7 @@ export class EventsController {
     return this.eventsService.getOptionThatUserVotedFor(id, userId);
   }
 
-  @Roles(Role.HR)
+  @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 10 }]))
   async partialUpdate(

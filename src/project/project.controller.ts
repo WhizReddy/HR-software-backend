@@ -17,7 +17,7 @@ import { Role } from 'src/common/enum/role.enum';
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
-  @Roles(Role.HR)
+  @Roles(Role.HR, Role.ADMIN)
   @Post()
   create(@Body() createProjectDto: CreateProjectDto) {
     return this.projectService.create(createProjectDto);
@@ -48,7 +48,7 @@ export class ProjectController {
     return this.projectService.update(id, updateProjectDto);
   }
 
-  @Roles(Role.HR)
+  @Roles(Role.HR, Role.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.projectService.remove(id);
