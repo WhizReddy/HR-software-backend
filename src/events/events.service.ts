@@ -190,6 +190,10 @@ export class EventsService {
   async findOne(id: string): Promise<Event> {
     try {
       const event = await this.eventModel.findById(id);
+      // Guard: check for null / soft-deleted BEFORE accessing properties
+      if (!event || event.isDeleted) {
+        throw new NotFoundException(`Event with id ${id} not found`);
+      }
       if (event.participants.length === 0) {
         event.participants = await getAllParticipants(
           this.userModel,
@@ -204,11 +208,9 @@ export class EventsService {
         }
         event.participants = updatedParticipants;
       }
-      if (!event || event.isDeleted) {
-        throw new NotFoundException(`Event with id ${id} not found`);
-      }
       return event;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -242,11 +244,13 @@ export class EventsService {
           }),
         );
       }
+      // Initialize participants as empty — populated only if provided in the payload
+      let participants: ObjectId[] = [];
       if (
         updateEventDto.participants &&
         updateEventDto.participants.length > 0
       ) {
-        var participants = await getParticipantsByUserId(
+        participants = await getParticipantsByUserId(
           this.userModel,
           this.authModel,
           updateEventDto.participants,

@@ -23,7 +23,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: '*',
+    origin: configService.get<string>('FRONT_URL') || '*',
     methods: 'GET,POST,PUT,DELETE,PATCH',
     credentials: true,
   });

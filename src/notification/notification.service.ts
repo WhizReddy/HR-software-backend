@@ -16,7 +16,7 @@ export class NotificationService {
     @InjectModel(Notification.name)
     private notificationModel: Model<Notification>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+  ) { }
 
   async createNotification(
     title: string,
@@ -89,10 +89,11 @@ export class NotificationService {
         );
       }
       updatedNotification.isRead = true;
-      updatedNotification.save();
+      await updatedNotification.save();
 
       return updatedNotification;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(
         'Failed to update notification',
         error.message,

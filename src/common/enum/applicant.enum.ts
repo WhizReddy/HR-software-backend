@@ -8,6 +8,7 @@ export enum ApplicantStatus {
 
 export enum ApplicantPhase {
   APPLICANT = 'applicant',
+  APPLIED = 'applied',
   FIRST_INTERVIEW = 'first_interview',
   SECOND_INTERVIEW = 'second_interview',
 }

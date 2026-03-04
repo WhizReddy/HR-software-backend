@@ -13,7 +13,7 @@ export class Applicant {
   @Prop({ required: true })
   lastName: string;
 
-  @Prop({ nullable: true })
+  @Prop({ required: false, default: null })
   confirmationToken: string;
 
   @Prop({ required: true })
@@ -68,9 +68,6 @@ export class Applicant {
     enum: ApplicantPhase,
   })
   currentPhase?: string;
-  static firstInterviewDate: Date;
-  static secondInterviewDate: Date;
-  static notes: string;
 }
 
 const ApplicantSchema = SchemaFactory.createForClass(Applicant);

@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Applicant, ApplicantSchema } from 'src/common/schema/applicant.schema';
 import { ApplicantsService } from './applicant.service';
 import { ApplicantsController } from './applicant.controller';
+import { ApplicantCleanupService } from './applicant-cleanup.service';
 import { MailModule } from 'src/mail/mail.module';
 import { FirebaseModule } from 'src/firebase/firebase.module';
 import { AuthModule } from 'src/auth/auth.module';
@@ -21,6 +22,6 @@ import { Auth, AuthSchema } from 'src/common/schema/auth.schema';
     NotificationModule,
   ],
   controllers: [ApplicantsController],
-  providers: [ApplicantsService],
+  providers: [ApplicantsService, ApplicantCleanupService],
 })
-export class ApplicantsModule {}
+export class ApplicantsModule { }

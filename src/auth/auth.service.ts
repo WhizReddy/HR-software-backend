@@ -26,7 +26,7 @@ export class AuthService {
     @InjectModel(Auth.name) private authModel: mongoose.Model<Auth>,
     private jwtService: JwtService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
   async signUp(createUserDto: CreateUserDto): Promise<User> {
     try {
@@ -64,6 +64,9 @@ export class AuthService {
       });
       return user;
     } catch (err) {
+      if (err instanceof ConflictException) {
+        throw err;
+      }
       throw new ConflictException('Error creating user');
     }
   }
@@ -152,6 +155,7 @@ export class AuthService {
 
       return 'Password reset link has been sent to your email';
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       console.error('Error during password reset request:', err);
       throw new ConflictException('Error during password reset request');
     }
@@ -178,6 +182,7 @@ export class AuthService {
 
       return 'Password reset successfully';
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       throw new ConflictException('Error resetting password');
     }
   }
@@ -185,6 +190,9 @@ export class AuthService {
   async getUser(email: string): Promise<User> {
     try {
       const userAuth = await this.authModel.findOne({ email });
+      if (!userAuth) {
+        throw new NotFoundException('User not found');
+      }
       const user = await this.userModel
         .findOne({ auth: userAuth._id })
         .populate('auth');
@@ -193,6 +201,7 @@ export class AuthService {
       }
       return user;
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       throw new ConflictException('Error retrieving user');
     }
   }
@@ -225,6 +234,7 @@ export class AuthService {
 
       return 'Password updated successfully';
     } catch (err) {
+      if (err instanceof NotFoundException || err instanceof UnauthorizedException) throw err;
       console.error('Error updating password:', err);
       throw new ConflictException('Error updating password');
     }

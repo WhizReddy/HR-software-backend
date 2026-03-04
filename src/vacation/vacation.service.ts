@@ -26,7 +26,7 @@ export class VacationService {
     @InjectModel(Vacation.name) private vacationModel: Model<Vacation>,
     private notificationService: NotificationService,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+  ) { }
 
   async create(createVacationDto: CreateVacationDto, req: Request) {
     try {
@@ -43,6 +43,7 @@ export class VacationService {
       );
       return await createdVacation.save();
     } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ConflictException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -82,8 +83,12 @@ export class VacationService {
       const vacation = await this.vacationModel
         .findById(id)
         .populate('userId', 'firstName lastName');
+      if (!vacation || vacation.isDeleted) {
+        throw new NotFoundException(`Vacation with id ${id} not found`);
+      }
       return vacation;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -118,9 +123,7 @@ export class VacationService {
           new Date(),
           updatedVacation._id,
         );
-        return updatedVacation;
-      }
-      if (updatedVacation.status === VacationStatus.REJECTED) {
+      } else if (updatedVacation.status === VacationStatus.REJECTED) {
         await this.notificationService.createNotification(
           'On Leave Has Been Rejected',
           `Vacation request from ${updatedVacation.startDate.toISOString().split('T')[0]} to ${updatedVacation.endDate.toISOString().split('T')[0]} has been rejected`,
@@ -128,10 +131,11 @@ export class VacationService {
           new Date(),
           updatedVacation._id,
         );
-
-        return updatedVacation;
       }
+      // Always return the updated vacation, regardless of status
+      return updatedVacation;
     } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ConflictException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -149,6 +153,7 @@ export class VacationService {
 
       return vacation;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -162,12 +167,12 @@ export class VacationService {
     let objectToPassToMatch: FilterQuery<any> =
       users === 'with'
         ? {
-            vacations: { $ne: [] },
-          }
+          vacations: { $ne: [] },
+        }
         : users === 'without'
           ? {
-              vacations: { $eq: [] },
-            }
+            vacations: { $eq: [] },
+          }
           : {};
 
     if (search) {
@@ -296,6 +301,7 @@ export class VacationService {
 
       return userWithVacation[0];
     } catch (err) {
+      if (err instanceof NotFoundException || err instanceof ConflictException) throw err;
       throw new ConflictException(err);
     }
   }

@@ -17,12 +17,13 @@ export class SalaryService {
   constructor(
     @InjectModel(Salary.name) private salaryModel: Model<Salary>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+  ) { }
 
   async create(createSalaryDto: CreateSalaryDto): Promise<Salary> {
     try {
       await this.checkUserId(createSalaryDto.userId);
-      const month = new Date().getMonth() - 1;
+      // getMonth() is 0-based (Jan=0, Dec=11) — no subtraction needed
+      const month = new Date().getMonth();
       const year = new Date().getFullYear();
       createSalaryDto.userId = new Types.ObjectId(createSalaryDto.userId);
 
@@ -33,7 +34,7 @@ export class SalaryService {
           year: year,
         })
       ) {
-        throw new ConflictException('Salary already exists');
+        throw new ConflictException('Salary already exists for this month');
       } else {
         const newSalary = new this.salaryModel(
           await this.calculateNetSalary(createSalaryDto),
@@ -41,6 +42,7 @@ export class SalaryService {
         return newSalary.save();
       }
     } catch (error) {
+      if (error instanceof ConflictException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -180,21 +182,22 @@ export class SalaryService {
       if (!exsistingSalary) {
         throw new NotFoundException(`Salary with id ${id} not found`);
       }
+      // Calculate net salary once and destructure — avoids 4 redundant calls
+      const calculated = await this.calculateNetSalary(updateSalaryDto);
       const updatedSalary = await this.salaryModel.findByIdAndUpdate(
         id,
         {
           ...updateSalaryDto,
-          netSalary: (await this.calculateNetSalary(updateSalaryDto)).netSalary,
-          tax: (await this.calculateNetSalary(updateSalaryDto)).tax,
-          healthInsurance: (await this.calculateNetSalary(updateSalaryDto))
-            .healthInsurance,
-          socialSecurity: (await this.calculateNetSalary(updateSalaryDto))
-            .socialSecurity,
+          netSalary: calculated.netSalary,
+          tax: calculated.tax,
+          healthInsurance: calculated.healthInsurance,
+          socialSecurity: calculated.socialSecurity,
         },
         { new: true },
       );
       return updatedSalary;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -244,7 +247,7 @@ export class SalaryService {
     const salary = new this.salaryModel({
       ...salaryData,
       netSalary: Math.round(netSalary),
-      month: new Date().getMonth() - 1,
+      month: new Date().getMonth(), // 0-based: Jan=0, Dec=11
       year: new Date().getFullYear(),
     });
     return salary;
@@ -253,39 +256,65 @@ export class SalaryService {
   @Cron('0 0 28 * *')
   async handleCron() {
     try {
-      const currentSalaries = await this.findAll(
-        new Date().getMonth(),
-        new Date().getFullYear(),
+      // findAll signature: (page, limit, month?, year?, ...)
+      // Pass null page/limit to get all, then specify month & year filters
+      const currentMonth = new Date().getMonth(); // 0-based
+      const currentYear = new Date().getFullYear();
+      const result = await this.findAll(
+        undefined,
+        undefined,
+        currentMonth,
+        currentYear,
       );
+      const currentSalaries = Array.isArray(result) ? result : result.data;
 
       for (const currentSalary of currentSalaries) {
-        const nextMonth = (currentSalary.month + 1) % 11 || 11;
+        // Correct month rollover: % 12 (0-based, Jan=0 … Dec=11)
+        const nextMonth = (currentSalary.month + 1) % 12;
         const nextYear =
-          currentSalary.month + 1 > 11
+          currentSalary.month === 11
             ? currentSalary.year + 1
             : currentSalary.year;
 
-        const user = await this.userModel.find({
+        const user = await this.userModel.findOne({
           _id: currentSalary.userId,
           isDeleted: false,
         });
-        if (user) {
-          var newSalary = {
-            workingDays: currentSalary.workingDays,
-            currency: currentSalary.currency,
-            bonus: currentSalary.bonus,
-            bonusDescription: currentSalary.bonusDescription,
-            grossSalary: currentSalary.grossSalary,
-            userId: currentSalary.userId,
-            month: nextMonth,
-            year: nextYear,
-            extraHours: currentSalary.extraHours,
-          };
-        }
-        await this.create(newSalary);
+        if (!user) continue;
+
+        // Check if salary already exists for next month before creating
+        const exists = await this.salaryModel.findOne({
+          userId: currentSalary.userId,
+          month: nextMonth,
+          year: nextYear,
+        });
+        if (exists) continue;
+
+        const newSalaryDto = {
+          workingDays: currentSalary.workingDays,
+          currency: currentSalary.currency,
+          bonus: 0, // reset bonus each month
+          bonusDescription: '',
+          grossSalary: currentSalary.grossSalary,
+          userId: currentSalary.userId,
+          extraHours: 0, // reset extra hours each month
+        } as CreateSalaryDto;
+
+        const calculated = await this.calculateNetSalary(newSalaryDto);
+        // Build the new salary record with the correct next-period month/year
+        const newSalary = new this.salaryModel({
+          ...newSalaryDto,
+          netSalary: calculated.netSalary,
+          tax: calculated.tax,
+          healthInsurance: calculated.healthInsurance,
+          socialSecurity: calculated.socialSecurity,
+          month: nextMonth,
+          year: nextYear,
+        });
+        await newSalary.save();
       }
     } catch (error) {
-      throw new ConflictException(error);
+      console.error('Salary cron job failed:', error);
     }
   }
 }

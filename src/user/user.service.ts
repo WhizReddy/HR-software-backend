@@ -19,7 +19,7 @@ export class UserService {
     @InjectModel('Auth')
     private authModel: mongoose.Model<any>,
     private readonly firebaseService: FirebaseService,
-  ) {}
+  ) { }
 
   async findAll(page?: number, limit?: number): Promise<User[]> {
     try {
@@ -78,6 +78,7 @@ export class UserService {
       }
       return updatedUser;
     } catch (err) {
+      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
       throw new ConflictException(err);
     }
   }

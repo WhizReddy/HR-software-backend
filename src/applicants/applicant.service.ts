@@ -40,7 +40,7 @@ export class ApplicantsService {
     private readonly firebaseService: FirebaseService,
     private readonly authService: AuthService,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async deleteApplicant(id: string): Promise<void> {
     const applicant = await this.findOne(id);
@@ -102,7 +102,7 @@ export class ApplicantsService {
       });
     } catch (error) {
       console.error('Error filtering applicants:', error);
-      throw new Error('Failed to filter applicants');
+      throw new InternalServerErrorException('Failed to filter applicants');
     }
   }
 
@@ -114,7 +114,6 @@ export class ApplicantsService {
     return applicant;
   }
 
-  @Public()
   async createApplicant(
     file: Express.Multer.File,
     createApplicantDto: CreateApplicantDto,
@@ -150,27 +149,13 @@ export class ApplicantsService {
         },
       });
 
-      setTimeout(
-        async () => {
-          const pendingApplicant = await this.applicantModel
-            .findById(applicant._id)
-            .exec();
-          if (
-            pendingApplicant &&
-            pendingApplicant.status === ApplicantStatus.PENDING
-          ) {
-            await this.applicantModel.deleteOne({ _id: applicant._id }).exec();
-            console.log(
-              `Deleted unconfirmed applicant with ID: ${applicant._id}`,
-            );
-          }
-        },
-        1000 * 60 * 60,
-      );
-
+      // NOTE: Unconfirmed applicant cleanup is handled by ApplicantCleanupService (@Cron every hour)
       return applicant;
     } catch (err) {
       console.error('Error creating applicant or sending email:', err);
+      if (err instanceof ConflictException || err instanceof NotFoundException) {
+        throw err;
+      }
       throw new ConflictException('Failed to create applicant');
     }
   }
@@ -245,7 +230,7 @@ export class ApplicantsService {
 
         const isReschedule = !!applicant.firstInterviewDate;
         applicant.firstInterviewDate = firstInterviewDate.toJSDate();
-        applicant.currentPhase = ApplicantPhase.FIRST_INTERVIEW;
+        // Note: currentPhase for date-based scheduling is set below via updateApplicantDto.currentPhase
         if (
           updateApplicantDto.customSubject &&
           updateApplicantDto.customMessage
@@ -281,7 +266,7 @@ export class ApplicantsService {
         if (
           applicant.firstInterviewDate &&
           secondInterviewDate <=
-            DateTime.fromJSDate(applicant.firstInterviewDate)
+          DateTime.fromJSDate(applicant.firstInterviewDate)
         ) {
           throw new ConflictException(
             'Second interview date must be later than the first interview date',
@@ -299,7 +284,7 @@ export class ApplicantsService {
 
         const isReschedule = !!applicant.secondInterviewDate;
         applicant.secondInterviewDate = secondInterviewDate.toJSDate();
-        applicant.currentPhase = ApplicantPhase.SECOND_INTERVIEW;
+        // Note: currentPhase for date-based scheduling is set below via updateApplicantDto.currentPhase
         if (
           updateApplicantDto.customSubject &&
           updateApplicantDto.customMessage
@@ -325,6 +310,10 @@ export class ApplicantsService {
         applicant.notes = updateApplicantDto.notes;
       }
 
+      if (updateApplicantDto.currentPhase) {
+        applicant.currentPhase = updateApplicantDto.currentPhase as ApplicantPhase;
+      }
+
       if (updateApplicantDto.status) {
         applicant.status = updateApplicantDto.status;
 
@@ -347,6 +336,10 @@ export class ApplicantsService {
       return await applicant.save();
     } catch (err) {
       console.error('Error updating applicant:', err);
+      // Re-throw ConflictExceptions so the client gets the real message
+      if (err instanceof ConflictException || err instanceof NotFoundException) {
+        throw err;
+      }
       throw new ConflictException('Failed to update applicant');
     }
   }
@@ -435,23 +428,32 @@ export class ApplicantsService {
 
     context.subject = subject;
 
-    await this.mailService.sendMail({
-      to: applicant.email,
-      subject: subject,
-      template: template,
-      context: context,
-    });
+    try {
+      await this.mailService.sendMail({
+        to: applicant.email,
+        subject: subject,
+        template: template,
+        context: context,
+      });
+    } catch (emailErr) {
+      console.warn('Silent Mailer Failure:', emailErr.message);
+    }
   }
 
   private async checkInterviewConflict(
     date: DateTime,
     applicantId: string,
   ): Promise<boolean> {
+    const bufferMinutes = 30;
+    const from = date.minus({ minutes: bufferMinutes }).toJSDate();
+    const to = date.plus({ minutes: bufferMinutes }).toJSDate();
+
     const conflict = await this.applicantModel.findOne({
       _id: { $ne: applicantId },
+      isDeleted: false,
       $or: [
-        { firstInterviewDate: date.toJSDate() },
-        { secondInterviewDate: date.toJSDate() },
+        { firstInterviewDate: { $gte: from, $lte: to } },
+        { secondInterviewDate: { $gte: from, $lte: to } },
       ],
     });
 

@@ -18,7 +18,7 @@ export class AssetService {
   constructor(
     @InjectModel(Asset.name) private assetModel: Model<Asset>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+  ) { }
   async create(createAssetDto: CreateAssetDto): Promise<Asset> {
     try {
       await this.validateAssetData(createAssetDto);
@@ -74,6 +74,8 @@ export class AssetService {
       }
       return asset;
     } catch (error) {
+      // Propagate known HTTP exceptions directly, wrap unknown errors as 409
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -170,9 +172,8 @@ export class AssetService {
         history: existingAsset.history,
       });
     } else {
-      throw new ConflictException(
-        'Cannot update history; asset has no previous history entries.',
-      );
+      // No prior history and not ASSIGNED — nothing to update
+      // (e.g. creating an asset with status AVAILABLE or BROKEN is fine as-is)
     }
   }
   async remove(id: string): Promise<Asset> {
@@ -227,14 +228,14 @@ export class AssetService {
     if (assetData.userId && !assetData.takenDate) {
       throw new ConflictException(`Asset with user must have a takenDate date`);
     }
-    if (assetData.returnDate && !existingAsset.takenDate) {
+    if (assetData.returnDate && !existingAsset?.takenDate) {
       throw new ConflictException(`Asset must have a takenDate date first`);
     }
     if (
       assetData.returnDate &&
-      existingAsset.takenDate &&
+      existingAsset?.takenDate &&
       DateTime.fromJSDate(new Date(existingAsset.takenDate)) >
-        DateTime.fromJSDate(new Date(assetData.returnDate))
+      DateTime.fromJSDate(new Date(assetData.returnDate))
     ) {
       throw new ConflictException(
         'Return date cannot be before the taken date',
@@ -264,12 +265,12 @@ export class AssetService {
     let objectToPassToMatch: FilterQuery<any> =
       users === 'with'
         ? {
-            assets: { $ne: [] },
-          }
+          assets: { $ne: [] },
+        }
         : users === 'without'
           ? {
-              assets: { $eq: [] },
-            }
+            assets: { $eq: [] },
+          }
           : {};
 
     if (search) {

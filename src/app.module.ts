@@ -21,6 +21,7 @@ import { ProjectModule } from './project/project.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { APP_GUARD } from '@nestjs/core';
         limit: 200,
       },
     ]),
+    ScheduleModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGODB_URI),
     MailerModule.forRootAsync({
       useFactory: async (config: ConfigService) => ({
