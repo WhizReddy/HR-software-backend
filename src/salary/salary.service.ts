@@ -158,6 +158,7 @@ export class SalaryService {
       );
       return paginatedSalary;
     } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ConflictException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -172,6 +173,7 @@ export class SalaryService {
       }
       return salary;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -227,15 +229,9 @@ export class SalaryService {
     } else {
       tax = 0.23 * (grossSalary - 200000) + 0.13 * (grossSalary - 170000);
     }
-    let netSalary = grossSalary - tax - healthInsurance - socialInsurance;
+    let netSalary = grossSalary - tax - healthInsurance - socialInsurance + extraHours;
     if (salaryData.bonus) {
-      netSalary =
-        grossSalary -
-        tax -
-        healthInsurance -
-        socialInsurance +
-        salaryData.bonus +
-        extraHours;
+      netSalary += salaryData.bonus;
     } else {
       salaryData.bonus = 0;
     }

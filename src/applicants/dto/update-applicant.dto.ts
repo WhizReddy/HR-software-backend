@@ -1,14 +1,11 @@
 import {
-  IsNotEmpty,
   IsDateString,
-  ValidateIf,
   IsOptional,
   IsString,
   IsEnum,
   Matches,
   IsEmail,
 } from 'class-validator';
-import { DateTime } from 'luxon';
 import { ApplicantStatus } from 'src/common/enum/applicant.enum';
 
 export class UpdateApplicantDto {
@@ -30,15 +27,6 @@ export class UpdateApplicantDto {
 
   @IsOptional()
   @IsDateString()
-  @ValidateIf((obj) => {
-    if (!obj.dob) return false;
-    const now = DateTime.now();
-    const dob = DateTime.fromISO(obj.dob);
-    if (!dob.isValid) return false;
-    const age = now.diff(dob, 'years').years;
-
-    return dob <= now && age >= 16;
-  })
   dob?: string;
 
   @IsOptional()
