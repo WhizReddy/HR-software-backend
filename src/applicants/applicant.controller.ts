@@ -49,6 +49,7 @@ export class ApplicantsController {
   @Get('confirm')
   async confirmApplication(@Query('token') token: string) {
     await this.applicantsService.confirmApplication(token);
+    return { message: 'Application confirmed successfully' };
   }
 
   @Roles(Role.ADMIN, Role.HR)

@@ -33,6 +33,7 @@ export class UserService {
       const sort = { createdAt: -1 };
       return paginate(page, limit, this.userModel, filter, sort, populate);
     } catch (err) {
+      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
       throw new ConflictException(err);
     }
   }
@@ -123,6 +124,7 @@ export class UserService {
       });
       return users;
     } catch (err) {
+      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
       throw new ConflictException(err);
     }
   }
@@ -149,6 +151,7 @@ export class UserService {
         });
       }
     } catch (err) {
+      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
       throw new ConflictException(err);
     }
   }

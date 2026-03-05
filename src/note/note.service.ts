@@ -19,7 +19,7 @@ export class NoteService {
     @InjectModel(Note.name) private noteModel: Model<Note>,
     @InjectModel(User.name) private userModel: Model<User>,
     private notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async create(createNoteDto: CreateNoteDto): Promise<Note> {
     try {
@@ -28,13 +28,14 @@ export class NoteService {
       await this.validateNoteData(createdNote);
       return createdNote.save();
     } catch (error) {
+      if (error instanceof BadRequestException || error instanceof ConflictException) throw error;
       throw new ConflictException(error);
     }
   }
 
   async findAll(): Promise<Note[]> {
     try {
-      return this.noteModel.find({ isDeleted: false });
+      return await this.noteModel.find({ isDeleted: false });
     } catch (error) {
       throw new ConflictException(error);
     }
@@ -46,10 +47,11 @@ export class NoteService {
       if (!user) {
         throw new BadRequestException('User not found');
       }
-      return this.noteModel
+      return await this.noteModel
         .find({ userId: new Types.ObjectId(userId), isDeleted: false })
         .sort({ date: 'asc' });
     } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -62,6 +64,7 @@ export class NoteService {
       }
       return note;
     } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -80,6 +83,7 @@ export class NoteService {
       await this.validateNoteData(updatedNote);
       return updatedNote;
     } catch (error) {
+      if (error instanceof BadRequestException || error instanceof ConflictException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -136,6 +140,7 @@ export class NoteService {
       }
       return note;
     } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       throw new ConflictException(error);
     }
   }

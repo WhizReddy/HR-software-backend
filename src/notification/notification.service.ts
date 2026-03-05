@@ -50,7 +50,7 @@ export class NotificationService {
 
   async findAll(): Promise<Notification[]> {
     try {
-      return this.notificationModel.find({ isDeleted: false });
+      return await this.notificationModel.find({ isDeleted: false });
     } catch (error) {
       throw new ConflictException(
         'Failed to fetch notifications',
@@ -248,7 +248,7 @@ export class NotificationService {
       .sort({ date: -1 });
 
     for (let i = 0; i < notification.length; i++) {
-      if (notification[i].readers.includes(userObjectId)) {
+      if (notification[i].readers.some((r) => r.equals(userObjectId))) {
         notification[i].isRead = false;
         await notification[i].save();
       }

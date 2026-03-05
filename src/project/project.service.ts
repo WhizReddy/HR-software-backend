@@ -19,7 +19,7 @@ export class ProjectService {
     @InjectModel(Project.name) private projectModel: Model<Project>,
     @InjectModel(User.name) private userModel: Model<User>,
     private ratingService: RatingsService,
-  ) {}
+  ) { }
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
@@ -63,13 +63,14 @@ export class ProjectService {
       }
       return createdProject;
     } catch (err) {
+      if (err instanceof BadRequestException || err instanceof NotFoundException) throw err;
       throw new BadRequestException(err);
     }
   }
 
   async findAll(): Promise<Project[]> {
     try {
-      return this.projectModel.find({ isDeleted: false });
+      return await this.projectModel.find({ isDeleted: false });
     } catch (err) {
       throw new BadRequestException(err);
     }
@@ -86,6 +87,7 @@ export class ProjectService {
       }
       return project;
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       throw new BadRequestException(err);
     }
   }
@@ -118,6 +120,7 @@ export class ProjectService {
       );
       return updatedProject;
     } catch (err) {
+      if (err instanceof NotFoundException || err instanceof BadRequestException) throw err;
       throw new BadRequestException(err);
     }
   }
@@ -138,13 +141,14 @@ export class ProjectService {
 
       return deletedProject;
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       throw new BadRequestException(err);
     }
   }
 
   async getStructure(): Promise<Project[]> {
     try {
-      return this.projectModel
+      return await this.projectModel
         .find(
           { isDeleted: false },
           { name: 1, projectManager: 1, teamMembers: 1 },
@@ -157,7 +161,13 @@ export class ProjectService {
   }
 
   async validateUserIds(userIds: Types.ObjectId[]) {
+    const seen = new Set<string>();
     for (let i = 0; i < userIds.length; i++) {
+      const idStr = userIds[i].toString();
+      if (seen.has(idStr)) {
+        throw new BadRequestException('User IDs must be unique');
+      }
+      seen.add(idStr);
       const user = await this.userModel.findOne({
         _id: userIds[i],
         isDeleted: false,
@@ -169,9 +179,6 @@ export class ProjectService {
         throw new BadRequestException(
           `User with ID ${userIds[i]} cannot be assigned to a project`,
         );
-      }
-      if (userIds[i] === userIds[i + 1]) {
-        throw new BadRequestException('Users IDs must be unique');
       }
     }
   }
@@ -229,6 +236,7 @@ export class ProjectService {
       }
       return teamMembers;
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       throw new BadRequestException(err);
     }
   }

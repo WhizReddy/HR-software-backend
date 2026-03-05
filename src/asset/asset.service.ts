@@ -28,6 +28,7 @@ export class AssetService {
       createdAsset.history = [];
       return await createdAsset.save();
     } catch (error) {
+      if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -100,6 +101,7 @@ export class AssetService {
       );
       return await this.assetModel.findById(id);
     } catch (error) {
+      if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -189,6 +191,7 @@ export class AssetService {
 
       return asset;
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }

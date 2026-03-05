@@ -190,8 +190,15 @@ export class VacationService {
         {
           $lookup: {
             from: 'vacations',
-            localField: '_id',
-            foreignField: 'userId',
+            let: { userId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ['$userId', '$$userId'] },
+                  isDeleted: { $ne: true },
+                },
+              },
+            ],
             as: 'vacations',
           },
         },

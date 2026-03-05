@@ -135,6 +135,7 @@ export class EventsService {
 
       return savedEvent;
     } catch (error) {
+      if (error instanceof ConflictException || error instanceof NotFoundException || error instanceof InternalServerErrorException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -203,7 +204,9 @@ export class EventsService {
         const updatedParticipants: string[] = [];
         for (const participant of event.participants) {
           const user = await this.userModel.findById(participant);
+          if (!user) continue; // skip deleted users
           const auth = await this.authModel.findById(user.auth);
+          if (!auth) continue;
           updatedParticipants.push(auth.email);
         }
         event.participants = updatedParticipants;
@@ -291,6 +294,7 @@ export class EventsService {
       );
       return updatedEvent;
     } catch (error) {
+      if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }
@@ -314,6 +318,7 @@ export class EventsService {
         result._id as Types.ObjectId,
       );
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new ConflictException(error);
     }
   }

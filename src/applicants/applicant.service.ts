@@ -61,7 +61,7 @@ export class ApplicantsService {
       const filter: any = {};
       filter.isDeleted = false;
       filter.status = {
-        $nin: [ApplicantStatus.PENDING, ApplicantStatus.EMPLOYED],
+        $nin: [ApplicantStatus.PENDING],
       };
 
       if (currentPhase) {
@@ -138,16 +138,24 @@ export class ApplicantsService {
 
       const confirmationUrl = `${process.env.FRONT_URL}/applicant/confirm?token=${confirmationToken}`;
 
-      await this.mailService.sendMail({
-        to: createApplicantDto.email,
-        subject: 'Confirm Your Application',
-        template: 'successfulApplication',
-        context: {
-          name: createApplicantDto.firstName,
-          positionApplied: createApplicantDto.positionApplied,
-          confirmationUrl,
-        },
-      });
+      try {
+        await this.mailService.sendMail({
+          to: createApplicantDto.email,
+          subject: 'Confirm Your Application',
+          template: 'successfulApplication',
+          context: {
+            name: createApplicantDto.firstName,
+            positionApplied: createApplicantDto.positionApplied,
+            confirmationUrl,
+          },
+        });
+      } catch (mailErr) {
+        console.warn('Failed to send confirmation email — auto-confirming applicant:', mailErr.message);
+        // Auto-confirm since the user can't receive the email
+        applicant.status = ApplicantStatus.ACTIVE;
+        applicant.confirmationToken = null;
+        await applicant.save();
+      }
 
       // NOTE: Unconfirmed applicant cleanup is handled by ApplicantCleanupService (@Cron every hour)
       return applicant;

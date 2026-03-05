@@ -19,11 +19,15 @@ async function addVote(
   const event = await eventModel.findById(id);
   const user = await userModel.findById(vote.userId);
 
+  let existingVote: string | null = null;
   for (const option of event.poll.options) {
     const existingVoter = option.voters.find(
       (voter) => voter._id.toString() === user._id.toString(),
     );
-    var existingVote = existingVoter ? option.option : null;
+    if (existingVoter) {
+      existingVote = option.option;
+      break; // found the vote, safe to stop iterating
+    }
   }
   if (existingVote) {
     await eventModel.findOneAndUpdate(

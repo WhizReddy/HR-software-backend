@@ -45,13 +45,8 @@ async function checkDatesforUpdate(
   const endDate = updateVacationDto.endDate
     ? DateTime.fromISO(updateVacationDto.endDate.toString())
     : DateTime.fromJSDate(existingVacation.endDate);
-  const today = DateTime.now();
 
-  if (startDate <= today) {
-    throw new ConflictException(
-      `Start date ${startDate.toISODate()} must be greater than today ${today.toISODate()}`,
-    );
-  }
+  const today = DateTime.now().startOf('day');
 
   if (endDate < startDate) {
     throw new ConflictException(
@@ -92,17 +87,17 @@ async function checkDatesforCreate(
 ) {
   const startDate = DateTime.fromISO(vacationData.startDate.toString());
   const endDate = DateTime.fromISO(vacationData.endDate.toString());
-  const today = DateTime.now();
+  const today = DateTime.now().startOf('day');
 
-  if (startDate <= today) {
+  if (startDate < today) {
     throw new ConflictException(
-      `Start date ${startDate.toISODate()} must be greater than today ${today.toISODate()}`,
+      `Start date ${startDate.toISODate()} cannot be in the past`,
     );
   }
 
   if (endDate < startDate) {
     throw new ConflictException(
-      `End date ${endDate.toISODate()} must be greater than start date ${startDate.toISODate()}`,
+      `End date ${endDate.toISODate()} must be after or equal to start date ${startDate.toISODate()}`,
     );
   }
 

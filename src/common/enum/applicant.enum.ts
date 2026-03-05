@@ -3,7 +3,7 @@ export enum ApplicantStatus {
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
   EMPLOYED = 'employed',
-  PENDING = 'PENDING',
+  PENDING = 'pending',
 }
 
 export enum ApplicantPhase {
@@ -11,6 +11,8 @@ export enum ApplicantPhase {
   APPLIED = 'applied',
   FIRST_INTERVIEW = 'first_interview',
   SECOND_INTERVIEW = 'second_interview',
+  REJECTED = 'rejected',
+  EMPLOYED = 'employed',
 }
 
 export enum EmailType {

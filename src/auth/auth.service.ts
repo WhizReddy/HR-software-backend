@@ -54,7 +54,7 @@ export class AuthService {
       // Send welcome email
       await this.mailService.sendMail({
         to: createUserDto.email,
-        subject: 'Welcome to Codevider',
+        subject: 'Welcome to HR Platform',
         template: 'welcome',
         context: {
           name: `${createUserDto.firstName} ${createUserDto.lastName}`,

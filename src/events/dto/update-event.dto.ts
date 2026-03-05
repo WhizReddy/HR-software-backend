@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { EventType } from 'src/common/enum/event.enum';
 import { Poll } from 'src/common/schema/event.schema';
 
@@ -23,6 +24,10 @@ export class UpdateEventDto {
   type: string;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    return value ? [value] : [];
+  })
   @IsArray()
   participants: string[];
 
@@ -39,5 +44,15 @@ export class UpdateEventDto {
   location: string;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  })
   poll: Poll;
 }
