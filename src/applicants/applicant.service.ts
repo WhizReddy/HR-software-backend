@@ -56,6 +56,7 @@ export class ApplicantsService {
     currentPhase?: string,
     startDate?: Date,
     endDate?: Date,
+    search?: string,
   ): Promise<Applicant[]> {
     try {
       const filter: any = {};
@@ -63,6 +64,14 @@ export class ApplicantsService {
       filter.status = {
         $nin: [ApplicantStatus.PENDING],
       };
+
+      if (search) {
+        filter.$or = [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ];
+      }
 
       if (currentPhase) {
         filter.currentPhase = currentPhase;

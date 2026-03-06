@@ -47,6 +47,7 @@ export class EventsService {
   ): Promise<Event> {
     try {
       let eventPhotos: string[] = [];
+      console.log(`Creating event: Received ${files?.length || 0} files`);
       if (files && files.length > 0) {
         eventPhotos = await Promise.all(
           files.map(async (file) => {
@@ -135,6 +136,7 @@ export class EventsService {
 
       return savedEvent;
     } catch (error) {
+      console.error('CREATE EVENT ERROR:', error);
       if (error instanceof ConflictException || error instanceof NotFoundException || error instanceof InternalServerErrorException) throw error;
       throw new ConflictException(error);
     }
@@ -294,8 +296,9 @@ export class EventsService {
       );
       return updatedEvent;
     } catch (error) {
+      console.error(`UPDATE EVENT ERROR (ID: ${id}):`, error);
       if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
-      throw new ConflictException(error);
+      throw new ConflictException(error?.message || error);
     }
   }
 

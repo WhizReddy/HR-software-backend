@@ -20,14 +20,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get()
   async findAll(
     @Query('page') page: number,
     @Query('limit') limit: number,
+    @Query('search') search: string = '',
   ): Promise<User[]> {
-    return await this.userService.findAll(page, limit);
+    return await this.userService.findAll(page, limit, search);
   }
 
   @Get('search/:name')

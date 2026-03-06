@@ -33,17 +33,17 @@ import { ScheduleModule } from '@nestjs/schedule';
       {
         name: 'short',
         ttl: 1000,
-        limit: 5,
+        limit: 20, // Increased from 5 to 20
       },
       {
         name: 'medium',
         ttl: 10000,
-        limit: 25,
+        limit: 100, // Increased from 25 to 100
       },
       {
         name: 'long',
         ttl: 60000,
-        limit: 200,
+        limit: 500, // Increased from 200 to 500
       },
     ]),
     ScheduleModule.forRoot(),

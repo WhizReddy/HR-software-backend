@@ -21,14 +21,24 @@ export class UserService {
     private readonly firebaseService: FirebaseService,
   ) { }
 
-  async findAll(page?: number, limit?: number): Promise<User[]> {
+  async findAll(page?: number, limit?: number, search?: string): Promise<User[]> {
     try {
+      const filter: any = { isDeleted: { $ne: true } };
+
+      if (search) {
+        filter.$or = [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ];
+      }
+
       if (!limit && !page) {
         return await this.userModel
-          .find({ isDeleted: { $ne: true } })
+          .find(filter)
           .populate('auth', 'email');
       }
-      const filter = { isDeleted: { $ne: true } };
+
       const populate = { path: 'auth', select: 'email' };
       const sort = { createdAt: -1 };
       return paginate(page, limit, this.userModel, filter, sort, populate);

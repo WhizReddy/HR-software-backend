@@ -35,6 +35,7 @@ export class ApplicantsController {
     @Query('currentPhase') currentPhase: string,
     @Query('startDate') startDate?: Date,
     @Query('endDate') endDate?: Date,
+    @Query('search') search: string = '',
   ) {
     return await this.applicantsService.findAll(
       page,
@@ -42,6 +43,7 @@ export class ApplicantsController {
       currentPhase,
       startDate,
       endDate,
+      search,
     );
   }
 

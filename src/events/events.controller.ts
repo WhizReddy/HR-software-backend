@@ -27,7 +27,7 @@ export class EventsController {
 
   @Roles(Role.HR, Role.ADMIN)
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 10 }]))
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }]))
   @UsePipes(new FileMimeTypeValidationPipe())
   async create(
     @UploadedFiles() files: { photo?: Express.Multer.File[] },
@@ -81,7 +81,7 @@ export class EventsController {
 
   @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 10 }]))
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }]))
   async partialUpdate(
     @Param('id') id: string,
     @Body() updateEventDto: UpdateEventDto,

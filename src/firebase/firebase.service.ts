@@ -10,6 +10,7 @@ export class FirebaseService {
     aspect: string = '',
   ): Promise<string> {
     try {
+      console.log(`Uploading file: ${file.originalname} to ${directoryToSave}`);
       const bucket = admin.storage().bucket(process.env.FIREBASE_BUCKETNAME);
       const fileName = `${Date.now()}_${file.mimetype.startsWith('image/') ? file.originalname.split('.').slice(0, -1).join('.') + '.webp' : file.originalname}`;
       const fileUpload = bucket.file(`${directoryToSave}/${fileName}`);
@@ -43,6 +44,7 @@ export class FirebaseService {
       const stream = fileUpload.createWriteStream({
         metadata: {
           contentType: contentType,
+          contentDisposition: 'inline',
         },
       });
 

@@ -101,7 +101,7 @@ function validateDate(startDate?: string, endDate?: string): void {
       );
     }
 
-    if (start <= now) {
+    if (start.plus({ minutes: 5 }) <= now) {
       throw new BadRequestException('Event date has passed');
     }
   }
