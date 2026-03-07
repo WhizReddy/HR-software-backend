@@ -53,7 +53,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         transport: {
           host: config.get('MAIL_SERVER'),
           secure: false,
-          port: config.get('MAIL_PORT'),
+          port: parseInt(config.get('MAIL_PORT'), 10),
 
           auth: {
             user: config.get('MAIL_USERNAME'),

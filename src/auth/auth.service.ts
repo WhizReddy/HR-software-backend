@@ -51,17 +51,25 @@ export class AuthService {
         auth: userAuth._id,
       });
 
-      // Send welcome email
-      await this.mailService.sendMail({
-        to: createUserDto.email,
-        subject: 'Welcome to HR Platform',
-        template: 'welcome',
-        context: {
-          name: `${createUserDto.firstName} ${createUserDto.lastName}`,
+      // Send welcome email (non-blocking)
+      try {
+        await this.mailService.sendMail({
+          to: createUserDto.email,
+          subject: 'Welcome to HR Platform',
+          template: 'welcome',
+          context: {
+            name: `${createUserDto.firstName} ${createUserDto.lastName}`,
+            email: createUserDto.email,
+            password,
+          },
+        });
+      } catch (mailError) {
+        console.error('FAILED_TO_SEND_WELCOME_EMAIL:', {
           email: createUserDto.email,
-          password,
-        },
-      });
+          error: mailError.message,
+          response: mailError.response || 'No response details',
+        });
+      }
       return user;
     } catch (err) {
       if (err instanceof ConflictException) {
