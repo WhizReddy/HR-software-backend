@@ -46,6 +46,11 @@ export class AuthService {
         password: hashedPassword,
       });
 
+      console.log('-----------------------------------');
+      console.log(`NEW USER CREATED: ${email}`);
+      console.log(`PASSWORD for log-in: ${password}`);
+      console.log('-----------------------------------');
+
       const user = await this.userModel.create({
         ...userProperties,
         auth: userAuth._id,
@@ -71,11 +76,11 @@ export class AuthService {
         });
       }
       return user;
+      return user;
     } catch (err) {
-      if (err instanceof ConflictException) {
-        throw err;
-      }
-      throw new ConflictException('Error creating user');
+      if (err instanceof ConflictException) throw err;
+      console.error('Error during signUp:', err);
+      throw new InternalServerErrorException('Error creating user');
     }
   }
 
@@ -162,10 +167,11 @@ export class AuthService {
       });
 
       return 'Password reset link has been sent to your email';
+      return 'Password reset link has been sent to your email';
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
       console.error('Error during password reset request:', err);
-      throw new ConflictException('Error during password reset request');
+      throw new InternalServerErrorException('Error during password reset request');
     }
   }
 
@@ -189,9 +195,11 @@ export class AuthService {
       await userAuth.save();
 
       return 'Password reset successfully';
+      return 'Password reset successfully';
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
-      throw new ConflictException('Error resetting password');
+      console.error('Error during password reset:', err);
+      throw new InternalServerErrorException('Error resetting password');
     }
   }
 
@@ -208,9 +216,11 @@ export class AuthService {
         throw new NotFoundException('User not found');
       }
       return user;
+      return user;
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
-      throw new ConflictException('Error retrieving user');
+      console.error('Error retrieving user:', err);
+      throw new InternalServerErrorException('Error retrieving user');
     }
   }
 
@@ -241,10 +251,12 @@ export class AuthService {
       await userAuth.save();
 
       return 'Password updated successfully';
+      return 'Password updated successfully';
     } catch (err) {
-      if (err instanceof NotFoundException || err instanceof UnauthorizedException) throw err;
+      if (err instanceof NotFoundException || err instanceof UnauthorizedException)
+        throw err;
       console.error('Error updating password:', err);
-      throw new ConflictException('Error updating password');
+      throw new InternalServerErrorException('Error updating password');
     }
   }
 
@@ -257,7 +269,8 @@ export class AuthService {
       );
       return 'User deleted successfully';
     } catch (err) {
-      throw new ConflictException('Error deleting user');
+      console.error('Error deleting user:', err);
+      throw new InternalServerErrorException('Error deleting user');
     }
   }
 }
