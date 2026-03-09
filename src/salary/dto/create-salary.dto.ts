@@ -45,13 +45,15 @@ export class CreateSalaryDto {
   @Min(0)
   tax?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(40000)
   grossSalary?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  extraHours: number;
+  extraHours?: number;
 
   @IsNotEmpty()
   @IsMongoId()

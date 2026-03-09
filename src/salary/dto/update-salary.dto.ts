@@ -52,5 +52,5 @@ export class UpdateSalaryDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  extraHours: number;
+  extraHours?: number;
 }
