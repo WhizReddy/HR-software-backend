@@ -11,10 +11,11 @@ import {
 import { Types } from 'mongoose';
 
 export class CreateSalaryDto {
+  @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(31)
-  workingDays: number;
+  workingDays?: number;
 
   @IsOptional()
   @IsString()
