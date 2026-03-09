@@ -26,7 +26,7 @@ export class VacationService {
     @InjectModel(Vacation.name) private vacationModel: Model<Vacation>,
     private notificationService: NotificationService,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) { }
+  ) {}
 
   async create(createVacationDto: CreateVacationDto, req: Request) {
     try {
@@ -43,7 +43,11 @@ export class VacationService {
       );
       return await createdVacation.save();
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -135,7 +139,11 @@ export class VacationService {
       // Always return the updated vacation, regardless of status
       return updatedVacation;
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -167,12 +175,12 @@ export class VacationService {
     let objectToPassToMatch: FilterQuery<any> =
       users === 'with'
         ? {
-          vacations: { $ne: [] },
-        }
+            vacations: { $ne: [] },
+          }
         : users === 'without'
           ? {
-            vacations: { $eq: [] },
-          }
+              vacations: { $eq: [] },
+            }
           : {};
 
     if (search) {
@@ -308,7 +316,8 @@ export class VacationService {
 
       return userWithVacation[0];
     } catch (err) {
-      if (err instanceof NotFoundException || err instanceof ConflictException) throw err;
+      if (err instanceof NotFoundException || err instanceof ConflictException)
+        throw err;
       throw new ConflictException(err);
     }
   }

@@ -24,4 +24,4 @@ import { Auth, AuthSchema } from 'src/common/schema/auth.schema';
   controllers: [ApplicantsController],
   providers: [ApplicantsService, ApplicantCleanupService],
 })
-export class ApplicantsModule { }
+export class ApplicantsModule {}

@@ -23,6 +23,7 @@ export class SalaryController {
     return this.salaryService.create(createSalaryDto);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Get()
   find(
     @Query('page') page: number,
@@ -47,6 +48,8 @@ export class SalaryController {
       fullName,
     );
   }
+
+  @Roles(Role.HR, Role.ADMIN)
   @Get('user/:id')
   findByUserId(
     @Param('id') id: string,
@@ -59,11 +62,13 @@ export class SalaryController {
     return this.salaryService.findByUserId(page, limit, id, month, year, graf);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.salaryService.findOne(id);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSalaryDto: UpdateSalaryDto) {
     return this.salaryService.update(id, updateSalaryDto);

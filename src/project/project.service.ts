@@ -19,7 +19,7 @@ export class ProjectService {
     @InjectModel(Project.name) private projectModel: Model<Project>,
     @InjectModel(User.name) private userModel: Model<User>,
     private ratingService: RatingsService,
-  ) { }
+  ) {}
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
@@ -63,7 +63,11 @@ export class ProjectService {
       }
       return createdProject;
     } catch (err) {
-      if (err instanceof BadRequestException || err instanceof NotFoundException) throw err;
+      if (
+        err instanceof BadRequestException ||
+        err instanceof NotFoundException
+      )
+        throw err;
       throw new BadRequestException(err);
     }
   }
@@ -120,7 +124,11 @@ export class ProjectService {
       );
       return updatedProject;
     } catch (err) {
-      if (err instanceof NotFoundException || err instanceof BadRequestException) throw err;
+      if (
+        err instanceof NotFoundException ||
+        err instanceof BadRequestException
+      )
+        throw err;
       throw new BadRequestException(err);
     }
   }

@@ -17,6 +17,7 @@ import { RequestResetPasswordDto } from './dto/request-reset-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -45,7 +46,6 @@ export class AuthController {
     @Body() updatePasswordDto: UpdatePasswordDto,
     @Request() req,
   ) {
-    console.log('Decoded User Email:', req.user.email);
     return await this.authService.updatePassword(
       updatePasswordDto,
       req.user.email,

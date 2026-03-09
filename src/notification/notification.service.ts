@@ -16,7 +16,7 @@ export class NotificationService {
     @InjectModel(Notification.name)
     private notificationModel: Model<Notification>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) { }
+  ) {}
 
   async createNotification(
     title: string,

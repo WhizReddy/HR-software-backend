@@ -22,8 +22,10 @@ async function bootstrap() {
     databaseURL: `https://${configService.get<string>('FIREBASE_PROJECT_ID')}.firebaseio.com`,
   });
 
+  const frontUrl = configService.get<string>('FRONT_URL');
+
   app.enableCors({
-    origin: configService.get<string>('FRONT_URL') || '*',
+    origin: frontUrl ? [frontUrl] : false,
     methods: 'GET,POST,PUT,DELETE,PATCH',
     credentials: true,
   });
@@ -36,6 +38,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3000);
+  const port = configService.get<number>('PORT') || 3000;
+  await app.listen(port);
 }
 bootstrap();

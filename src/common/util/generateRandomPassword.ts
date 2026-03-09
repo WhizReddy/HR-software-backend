@@ -9,7 +9,9 @@ export function generateRandomPassword(): string {
   password += lower.charAt(Math.floor(Math.random() * lower.length));
   password += upper.charAt(Math.floor(Math.random() * upper.length));
   password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  password += specialChars.charAt(Math.floor(Math.random() * specialChars.length));
+  password += specialChars.charAt(
+    Math.floor(Math.random() * specialChars.length),
+  );
 
   // Fill the rest of the 16 characters
   const allChars = lower + upper + numbers + specialChars;
@@ -18,5 +20,8 @@ export function generateRandomPassword(): string {
   }
 
   // Shuffle the password
-  return password.split('').sort(() => 0.5 - Math.random()).join('');
+  return password
+    .split('')
+    .sort(() => 0.5 - Math.random())
+    .join('');
 }

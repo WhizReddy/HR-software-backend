@@ -13,6 +13,8 @@ import {
 import { VacationService } from './vacation.service';
 import { CreateVacationDto } from './dto/create-vacation.dto';
 import { UpdateVacationDto } from './dto/update-vacation.dto';
+import { Roles } from 'src/common/decorator/roles.decorator';
+import { Role } from 'src/common/enum/role.enum';
 
 @Controller('vacation')
 export class VacationController {
@@ -23,6 +25,7 @@ export class VacationController {
     return this.vacationService.create(createVacationDto, req);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Get()
   findAll(
     @Query('page') page: number,
@@ -42,6 +45,7 @@ export class VacationController {
     );
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Get('user')
   findAllWithUsers(
     @Query('search') search: string = '',
@@ -57,15 +61,19 @@ export class VacationController {
     return this.vacationService.getUserVacation(id);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Get('onLeave')
   findAllOnLeave() {
     return this.vacationService.getNumberOfUsersOnVacation();
   }
+
+  @Roles(Role.HR, Role.ADMIN)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.vacationService.findOne(id);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -74,6 +82,7 @@ export class VacationController {
     return this.vacationService.update(id, updateVacationDto);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.vacationService.remove(id);

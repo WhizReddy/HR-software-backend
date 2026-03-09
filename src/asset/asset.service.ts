@@ -18,7 +18,7 @@ export class AssetService {
   constructor(
     @InjectModel(Asset.name) private assetModel: Model<Asset>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) { }
+  ) {}
   async create(createAssetDto: CreateAssetDto): Promise<Asset> {
     try {
       await this.validateAssetData(createAssetDto);
@@ -28,7 +28,11 @@ export class AssetService {
       createdAsset.history = [];
       return await createdAsset.save();
     } catch (error) {
-      if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
+      if (
+        error instanceof ConflictException ||
+        error instanceof NotFoundException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -101,7 +105,11 @@ export class AssetService {
       );
       return await this.assetModel.findById(id);
     } catch (error) {
-      if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
+      if (
+        error instanceof ConflictException ||
+        error instanceof NotFoundException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -158,10 +166,12 @@ export class AssetService {
       existingAsset.history &&
       existingAsset.history.length > 0
     ) {
-      const lastHistoryEntry = existingAsset.history[existingAsset.history.length - 1];
+      const lastHistoryEntry =
+        existingAsset.history[existingAsset.history.length - 1];
 
       if (lastHistoryEntry) {
-        lastHistoryEntry.returnDate = updateAssetDto.returnDate || now.toJSDate();
+        lastHistoryEntry.returnDate =
+          updateAssetDto.returnDate || now.toJSDate();
         lastHistoryEntry.updatedAt = now.toJSDate();
         lastHistoryEntry.status = updateAssetDto.status;
 
@@ -229,7 +239,7 @@ export class AssetService {
       assetData.returnDate &&
       existingAsset?.takenDate &&
       DateTime.fromJSDate(new Date(existingAsset.takenDate)) >
-      DateTime.fromJSDate(new Date(assetData.returnDate))
+        DateTime.fromJSDate(new Date(assetData.returnDate))
     ) {
       throw new ConflictException(
         'Return date cannot be before the taken date',
@@ -259,12 +269,12 @@ export class AssetService {
     let objectToPassToMatch: FilterQuery<any> =
       users === 'with'
         ? {
-          assets: { $ne: [] },
-        }
+            assets: { $ne: [] },
+          }
         : users === 'without'
           ? {
-            assets: { $eq: [] },
-          }
+              assets: { $eq: [] },
+            }
           : {};
 
     if (search) {

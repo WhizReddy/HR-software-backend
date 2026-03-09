@@ -6,14 +6,13 @@ import {
   Matches,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  ValidationArguments,
   Validate,
 } from 'class-validator';
 import { DateTime } from 'luxon';
 
 @ValidatorConstraint({ name: 'isValidDob', async: false })
 class IsValidDobConstraint implements ValidatorConstraintInterface {
-  validate(value: string, _args: ValidationArguments) {
+  validate(value: string) {
     if (!value) return false;
     const dob = DateTime.fromISO(value);
     if (!dob.isValid) return false;
@@ -22,7 +21,7 @@ class IsValidDobConstraint implements ValidatorConstraintInterface {
     return dob < now && age >= 16;
   }
 
-  defaultMessage(_args: ValidationArguments) {
+  defaultMessage() {
     return 'Date of birth must be a past date and applicant must be at least 16 years old';
   }
 }

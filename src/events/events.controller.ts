@@ -23,7 +23,7 @@ import { Role } from 'src/common/enum/role.enum';
 
 @Controller('event')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) { }
+  constructor(private readonly eventsService: EventsService) {}
 
   @Roles(Role.HR, Role.ADMIN)
   @Post()

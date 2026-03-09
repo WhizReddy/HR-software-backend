@@ -19,7 +19,7 @@ export class NoteService {
     @InjectModel(Note.name) private noteModel: Model<Note>,
     @InjectModel(User.name) private userModel: Model<User>,
     private notificationService: NotificationService,
-  ) { }
+  ) {}
 
   async create(createNoteDto: CreateNoteDto): Promise<Note> {
     try {
@@ -28,7 +28,11 @@ export class NoteService {
       await this.validateNoteData(createdNote);
       return createdNote.save();
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException) throw error;
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -83,7 +87,11 @@ export class NoteService {
       await this.validateNoteData(updatedNote);
       return updatedNote;
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException) throw error;
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }

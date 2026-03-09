@@ -6,9 +6,17 @@ import { User } from './user.schema';
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
 
 declare global {
-  var AssetType: string[];
+  let AssetType: string[];
 }
-global.AssetType = ['laptop', 'monitor', 'keyboard', 'mouse', 'phone', 'tablet', 'headset'];
+global.AssetType = [
+  'laptop',
+  'monitor',
+  'keyboard',
+  'mouse',
+  'phone',
+  'tablet',
+  'headset',
+];
 
 @Schema({ _id: false })
 export class AssetHistory {

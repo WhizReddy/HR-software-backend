@@ -24,7 +24,6 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Public } from 'src/common/decorator/public.decorator';
 import { AuthService } from 'src/auth/auth.service';
 import { NotificationType } from 'src/common/enum/notification.enum';
 import { Auth } from 'src/common/schema/auth.schema';
@@ -40,7 +39,7 @@ export class ApplicantsService {
     private readonly firebaseService: FirebaseService,
     private readonly authService: AuthService,
     private readonly notificationService: NotificationService,
-  ) { }
+  ) {}
 
   async deleteApplicant(id: string): Promise<void> {
     const applicant = await this.findOne(id);
@@ -69,7 +68,7 @@ export class ApplicantsService {
         filter.$or = [
           { firstName: { $regex: search, $options: 'i' } },
           { lastName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } }
+          { email: { $regex: search, $options: 'i' } },
         ];
       }
 
@@ -159,7 +158,10 @@ export class ApplicantsService {
           },
         });
       } catch (mailErr) {
-        console.warn('Failed to send confirmation email — auto-confirming applicant:', mailErr.message);
+        console.warn(
+          'Failed to send confirmation email — auto-confirming applicant:',
+          mailErr.message,
+        );
         // Auto-confirm since the user can't receive the email
         applicant.status = ApplicantStatus.ACTIVE;
         applicant.confirmationToken = null;
@@ -170,7 +172,10 @@ export class ApplicantsService {
       return applicant;
     } catch (err) {
       console.error('Error creating applicant or sending email:', err);
-      if (err instanceof ConflictException || err instanceof NotFoundException) {
+      if (
+        err instanceof ConflictException ||
+        err instanceof NotFoundException
+      ) {
         throw err;
       }
       throw new ConflictException('Failed to create applicant');
@@ -283,7 +288,7 @@ export class ApplicantsService {
         if (
           applicant.firstInterviewDate &&
           secondInterviewDate <=
-          DateTime.fromJSDate(applicant.firstInterviewDate)
+            DateTime.fromJSDate(applicant.firstInterviewDate)
         ) {
           throw new ConflictException(
             'Second interview date must be later than the first interview date',
@@ -328,7 +333,8 @@ export class ApplicantsService {
       }
 
       if (updateApplicantDto.currentPhase) {
-        applicant.currentPhase = updateApplicantDto.currentPhase as ApplicantPhase;
+        applicant.currentPhase =
+          updateApplicantDto.currentPhase as ApplicantPhase;
       }
 
       if (updateApplicantDto.status) {
@@ -354,7 +360,10 @@ export class ApplicantsService {
     } catch (err) {
       console.error('Error updating applicant:', err);
       // Re-throw ConflictExceptions so the client gets the real message
-      if (err instanceof ConflictException || err instanceof NotFoundException) {
+      if (
+        err instanceof ConflictException ||
+        err instanceof NotFoundException
+      ) {
         throw err;
       }
       throw new ConflictException('Failed to update applicant');

@@ -26,7 +26,7 @@ export class AuthService {
     @InjectModel(Auth.name) private authModel: mongoose.Model<Auth>,
     private jwtService: JwtService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<User> {
     try {
@@ -45,11 +45,6 @@ export class AuthService {
         email,
         password: hashedPassword,
       });
-
-      console.log('-----------------------------------');
-      console.log(`NEW USER CREATED: ${email}`);
-      console.log(`PASSWORD for log-in: ${password}`);
-      console.log('-----------------------------------');
 
       const user = await this.userModel.create({
         ...userProperties,
@@ -75,7 +70,7 @@ export class AuthService {
           response: mailError.response || 'No response details',
         });
       }
-      return user;
+
       return user;
     } catch (err) {
       if (err instanceof ConflictException) throw err;
@@ -84,7 +79,6 @@ export class AuthService {
     }
   }
 
-  // Sign In logic
   async signIn(signInUserDto: SignInUserDto): Promise<{
     message: string;
     data: { access_token: string; user: any };
@@ -93,7 +87,7 @@ export class AuthService {
       const userAuth = await this.authModel.findOne({
         email: signInUserDto.email,
       });
-      if (!userAuth) {
+      if (!userAuth || userAuth.isDeleted) {
         throw new NotFoundException('Email not found');
       }
 
@@ -136,17 +130,16 @@ export class AuthService {
         err instanceof NotFoundException
       ) {
         throw err;
-      } else {
-        throw new InternalServerErrorException('Server error');
       }
+      throw new InternalServerErrorException('Server error');
     }
   }
 
   async forgotPassword(email: string): Promise<string> {
     try {
       const userAuth = await this.authModel.findOne({ email });
-      if (!userAuth) {
-        throw new NotFoundException('User not found');
+      if (!userAuth || userAuth.isDeleted) {
+        return 'Password reset link has been sent to your email';
       }
 
       const resetToken = randomBytes(32).toString('hex');
@@ -167,11 +160,11 @@ export class AuthService {
       });
 
       return 'Password reset link has been sent to your email';
-      return 'Password reset link has been sent to your email';
     } catch (err) {
-      if (err instanceof NotFoundException) throw err;
       console.error('Error during password reset request:', err);
-      throw new InternalServerErrorException('Error during password reset request');
+      throw new InternalServerErrorException(
+        'Error during password reset request',
+      );
     }
   }
 
@@ -195,7 +188,6 @@ export class AuthService {
       await userAuth.save();
 
       return 'Password reset successfully';
-      return 'Password reset successfully';
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
       console.error('Error during password reset:', err);
@@ -206,16 +198,18 @@ export class AuthService {
   async getUser(email: string): Promise<User> {
     try {
       const userAuth = await this.authModel.findOne({ email });
-      if (!userAuth) {
+      if (!userAuth || userAuth.isDeleted) {
         throw new NotFoundException('User not found');
       }
+
       const user = await this.userModel
         .findOne({ auth: userAuth._id })
         .populate('auth');
+
       if (!user) {
         throw new NotFoundException('User not found');
       }
-      return user;
+
       return user;
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
@@ -231,7 +225,7 @@ export class AuthService {
     try {
       const userAuth = await this.authModel.findOne({ email });
 
-      if (!userAuth) {
+      if (!userAuth || userAuth.isDeleted) {
         throw new NotFoundException('User not found');
       }
 
@@ -251,10 +245,13 @@ export class AuthService {
       await userAuth.save();
 
       return 'Password updated successfully';
-      return 'Password updated successfully';
     } catch (err) {
-      if (err instanceof NotFoundException || err instanceof UnauthorizedException)
+      if (
+        err instanceof NotFoundException ||
+        err instanceof UnauthorizedException
+      ) {
         throw err;
+      }
       console.error('Error updating password:', err);
       throw new InternalServerErrorException('Error updating password');
     }
@@ -262,13 +259,19 @@ export class AuthService {
 
   async removeUser(email: string): Promise<string> {
     try {
-      await this.authModel.findOneAndUpdate(
+      const deletedAuth = await this.authModel.findOneAndUpdate(
         { email },
         { isDeleted: true },
         { new: true },
       );
+
+      if (!deletedAuth) {
+        throw new NotFoundException('User not found');
+      }
+
       return 'User deleted successfully';
     } catch (err) {
+      if (err instanceof NotFoundException) throw err;
       console.error('Error deleting user:', err);
       throw new InternalServerErrorException('Error deleting user');
     }

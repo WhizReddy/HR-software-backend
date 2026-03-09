@@ -39,7 +39,7 @@ export class EventsService {
     private notificationService: NotificationService,
     private readonly firebaseService: FirebaseService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   async create(
     files: Express.Multer.File[],
@@ -121,7 +121,7 @@ export class EventsService {
         await this.mailService.sendMail({
           to:
             createEventDto.participants?.length === 0 ||
-              !createEventDto.participants
+            !createEventDto.participants
               ? await getAllParticipants(this.userModel, this.authModel)
               : createEventDto.participants,
           subject: `${createdEvent.title} - ${createdEvent.type}`,
@@ -131,13 +131,21 @@ export class EventsService {
           },
         });
       } catch (mailError) {
-        console.warn('Event created but email notification failed:', mailError?.message || mailError);
+        console.warn(
+          'Event created but email notification failed:',
+          mailError?.message || mailError,
+        );
       }
 
       return savedEvent;
     } catch (error) {
       console.error('CREATE EVENT ERROR:', error);
-      if (error instanceof ConflictException || error instanceof NotFoundException || error instanceof InternalServerErrorException) throw error;
+      if (
+        error instanceof ConflictException ||
+        error instanceof NotFoundException ||
+        error instanceof InternalServerErrorException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -297,7 +305,11 @@ export class EventsService {
       return updatedEvent;
     } catch (error) {
       console.error(`UPDATE EVENT ERROR (ID: ${id}):`, error);
-      if (error instanceof ConflictException || error instanceof NotFoundException) throw error;
+      if (
+        error instanceof ConflictException ||
+        error instanceof NotFoundException
+      )
+        throw error;
       throw new ConflictException(error?.message || error);
     }
   }

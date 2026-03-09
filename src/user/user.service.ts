@@ -19,9 +19,13 @@ export class UserService {
     @InjectModel('Auth')
     private authModel: mongoose.Model<any>,
     private readonly firebaseService: FirebaseService,
-  ) { }
+  ) {}
 
-  async findAll(page?: number, limit?: number, search?: string): Promise<User[]> {
+  async findAll(
+    page?: number,
+    limit?: number,
+    search?: string,
+  ): Promise<User[]> {
     try {
       const filter: any = { isDeleted: { $ne: true } };
 
@@ -29,21 +33,20 @@ export class UserService {
         filter.$or = [
           { firstName: { $regex: search, $options: 'i' } },
           { lastName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } }
+          { email: { $regex: search, $options: 'i' } },
         ];
       }
 
       if (!limit && !page) {
-        return await this.userModel
-          .find(filter)
-          .populate('auth', 'email');
+        return await this.userModel.find(filter).populate('auth', 'email');
       }
 
       const populate = { path: 'auth', select: 'email' };
       const sort = { createdAt: -1 };
       return paginate(page, limit, this.userModel, filter, sort, populate);
     } catch (err) {
-      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
+      if (err instanceof ConflictException || err instanceof NotFoundException)
+        throw err;
       throw new ConflictException(err);
     }
   }
@@ -89,7 +92,8 @@ export class UserService {
       }
       return updatedUser;
     } catch (err) {
-      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
+      if (err instanceof ConflictException || err instanceof NotFoundException)
+        throw err;
       throw new ConflictException(err);
     }
   }
@@ -134,7 +138,8 @@ export class UserService {
       });
       return users;
     } catch (err) {
-      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
+      if (err instanceof ConflictException || err instanceof NotFoundException)
+        throw err;
       throw new ConflictException(err);
     }
   }
@@ -161,7 +166,8 @@ export class UserService {
         });
       }
     } catch (err) {
-      if (err instanceof ConflictException || err instanceof NotFoundException) throw err;
+      if (err instanceof ConflictException || err instanceof NotFoundException)
+        throw err;
       throw new ConflictException(err);
     }
   }

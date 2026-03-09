@@ -17,7 +17,7 @@ export class SalaryService {
   constructor(
     @InjectModel(Salary.name) private salaryModel: Model<Salary>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) { }
+  ) {}
 
   async create(createSalaryDto: CreateSalaryDto): Promise<Salary> {
     try {
@@ -158,7 +158,11 @@ export class SalaryService {
       );
       return paginatedSalary;
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      )
+        throw error;
       throw new ConflictException(error);
     }
   }
@@ -226,7 +230,8 @@ export class SalaryService {
     const proRatedGross = (baseMonthlyGross / 22) * workingDays;
 
     // 2. Calculate Extra Hours pay (assuming 8h day, 22 days = 176h/month)
-    const extraHoursPay = (baseMonthlyGross / (22 * 8)) * (salaryData.extraHours || 0);
+    const extraHoursPay =
+      (baseMonthlyGross / (22 * 8)) * (salaryData.extraHours || 0);
 
     // 3. Gross for tax purposes (pro-rated base + extra hours)
     const totalGross = proRatedGross + extraHoursPay;
@@ -243,7 +248,7 @@ export class SalaryService {
     // 6. Progressive Tax Calculation (Example Progressive logic)
     let tax = 0;
     if (taxableIncome > 200000) {
-      tax = (taxableIncome - 200000) * 0.23 + (170000 * 0.13); // 23% for amount > 200k, plus middle bracket
+      tax = (taxableIncome - 200000) * 0.23 + 170000 * 0.13; // 23% for amount > 200k, plus middle bracket
     } else if (taxableIncome > 30000) {
       tax = (taxableIncome - 30000) * 0.13; // 13% for amount > 30k
     }

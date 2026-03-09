@@ -25,7 +25,7 @@ import { Role } from 'src/common/enum/role.enum';
 
 @Controller('applicant')
 export class ApplicantsController {
-  constructor(private readonly applicantsService: ApplicantsService) { }
+  constructor(private readonly applicantsService: ApplicantsService) {}
 
   @Roles(Role.ADMIN, Role.HR)
   @Get()
@@ -76,7 +76,10 @@ export class ApplicantsController {
         applicant: updatedApplicant,
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
         throw error;
       }
       throw new ConflictException(error.message || 'Error updating applicant');
