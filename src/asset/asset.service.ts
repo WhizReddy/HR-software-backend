@@ -143,7 +143,7 @@ export class AssetService {
         takenDate: takenDate,
         returnDate: null,
         user: {
-          _id: updateUser._id,
+          _id: updateUser._id as any,
           firstName: updateUser.firstName,
           lastName: updateUser.lastName,
         },
@@ -151,31 +151,22 @@ export class AssetService {
       };
 
       existingAsset.history.push(newHistoryEntry);
-      Object.assign(updateAssetDto, {
-        history: existingAsset.history,
-      });
+      (updateAssetDto as any).history = existingAsset.history;
     } else if (
       (updateAssetDto.status === AssetStatus.AVAILABLE ||
         updateAssetDto.status === AssetStatus.BROKEN) &&
+      existingAsset.history &&
       existingAsset.history.length > 0
     ) {
-      const lastHistoryEntry = existingAsset.history.pop();
+      const lastHistoryEntry = existingAsset.history[existingAsset.history.length - 1];
 
-      const newHistoryEntry: AssetHistory = {
-        updatedAt: now.toJSDate(),
-        takenDate: lastHistoryEntry.takenDate,
-        returnDate: updateAssetDto.returnDate,
-        user: lastHistoryEntry.user,
-        status: updateAssetDto.status,
-      };
+      if (lastHistoryEntry) {
+        lastHistoryEntry.returnDate = updateAssetDto.returnDate || now.toJSDate();
+        lastHistoryEntry.updatedAt = now.toJSDate();
+        lastHistoryEntry.status = updateAssetDto.status;
 
-      existingAsset.history.push(newHistoryEntry);
-      Object.assign(updateAssetDto, {
-        history: existingAsset.history,
-      });
-    } else {
-      // No prior history and not ASSIGNED — nothing to update
-      // (e.g. creating an asset with status AVAILABLE or BROKEN is fine as-is)
+        (updateAssetDto as any).history = existingAsset.history;
+      }
     }
   }
   async remove(id: string): Promise<Asset> {

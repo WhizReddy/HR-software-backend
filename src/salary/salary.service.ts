@@ -214,38 +214,55 @@ export class SalaryService {
   private async calculateNetSalary(
     salaryData: CreateSalaryDto | UpdateSalaryDto,
   ): Promise<Salary> {
-    const grossSalary = (salaryData.grossSalary / 22) * salaryData.workingDays;
-    const healthInsurance = 0.017 * grossSalary;
-    const socialInsurance = 0.095 * grossSalary;
-    const extraHours =
-      (salaryData.grossSalary / (22 * 8)) * salaryData.extraHours;
+    // 1. Pro-rate the gross salary based on working days (standard 22-day month)
+    const baseMonthlyGross = salaryData.grossSalary || 0;
+    const workingDays = salaryData.workingDays || 22;
+    const proRatedGross = (baseMonthlyGross / 22) * workingDays;
+
+    // 2. Calculate Extra Hours pay (assuming 8h day, 22 days = 176h/month)
+    const extraHoursPay = (baseMonthlyGross / (22 * 8)) * (salaryData.extraHours || 0);
+
+    // 3. Gross for tax purposes (pro-rated base + extra hours)
+    const totalGross = proRatedGross + extraHoursPay;
+
+    // 4. Social & Health Insurance (standard employee rates)
+    // Social Security: 0.095 (9.5%), Health Insurance: 0.017 (1.7%)
+    const socialSecurityEmp = 0.095 * totalGross;
+    const healthInsuranceEmp = 0.017 * totalGross;
+
+    // 5. Taxable Income (Total Gross - Social Security)
+    // Note: Health insurance is typically not deductible for tax purposes in many regions
+    const taxableIncome = totalGross - socialSecurityEmp;
+
+    // 6. Progressive Tax Calculation (Example Progressive logic)
     let tax = 0;
-    if (grossSalary <= 50000) {
-      tax = 0;
-    } else if (grossSalary <= 60000) {
-      tax = 0.13 * (grossSalary - 35000);
-    } else if (grossSalary <= 200000) {
-      tax = 0.13 * (grossSalary - 30000);
-    } else {
-      tax = 0.23 * (grossSalary - 200000) + 0.13 * (grossSalary - 170000);
-    }
-    let netSalary = grossSalary - tax - healthInsurance - socialInsurance + extraHours;
-    if (salaryData.bonus) {
-      netSalary += salaryData.bonus;
-    } else {
-      salaryData.bonus = 0;
+    if (taxableIncome > 200000) {
+      tax = (taxableIncome - 200000) * 0.23 + (170000 * 0.13); // 23% for amount > 200k, plus middle bracket
+    } else if (taxableIncome > 30000) {
+      tax = (taxableIncome - 30000) * 0.13; // 13% for amount > 30k
     }
 
-    salaryData.socialSecurity = Math.round(socialInsurance);
-    salaryData.healthInsurance = Math.round(healthInsurance);
+    // 7. Net Salary calculation (Gross - Taxes - Insurances + Bonus)
+    let netSalary = totalGross - tax - healthInsuranceEmp - socialSecurityEmp;
+    if (salaryData.bonus) {
+      netSalary += salaryData.bonus;
+    }
+
+    // Save calculated values to DTO/Object for storage
+    salaryData.socialSecurity = Math.round(socialSecurityEmp);
+    salaryData.healthInsurance = Math.round(healthInsuranceEmp);
     salaryData.tax = Math.round(tax);
+    salaryData.grossSalary = baseMonthlyGross; // Keep the original base gross
+    salaryData.bonus = salaryData.bonus || 0;
 
     const salary = new this.salaryModel({
       ...salaryData,
       netSalary: Math.round(netSalary),
-      month: new Date().getMonth(), // 0-based: Jan=0, Dec=11
-      year: new Date().getFullYear(),
+      grossSalary: Math.round(totalGross), // Store the pro-rated total gross as the actual month's gross
+      month: salaryData['month'] ?? new Date().getMonth(),
+      year: salaryData['year'] ?? new Date().getFullYear(),
     });
+
     return salary;
   }
 
