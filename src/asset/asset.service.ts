@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { FilterQuery, Model, PipelineStage } from 'mongoose';
-import { Asset, AssetHistory } from '../common/schema/asset.schema';
+import { Asset, AssetHistory, AssetType } from '../common/schema/asset.schema';
 import { AssetStatus } from '../common/enum/asset.enum';
 import { User } from '../common/schema/user.schema';
 import { CreateAssetDto } from './dto/create-asset.dto';

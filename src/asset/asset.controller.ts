@@ -13,6 +13,7 @@ import { CreateAssetDto } from './dto/create-asset.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
+import { AssetType } from 'src/common/schema/asset.schema';
 
 @Roles(Role.ADMIN, Role.HR)
 @Controller('asset')

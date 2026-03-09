@@ -5,10 +5,7 @@ import { AssetStatus } from '../enum/asset.enum';
 import { User } from './user.schema';
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
 
-declare global {
-  let AssetType: string[];
-}
-global.AssetType = [
+export const AssetType: string[] = [
   'laptop',
   'monitor',
   'keyboard',
