@@ -13,7 +13,7 @@ import { Types } from 'mongoose';
 export class CreateSalaryDto {
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @Min(0)
   @Max(31)
   workingDays?: number;
 
@@ -23,7 +23,7 @@ export class CreateSalaryDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @Min(0)
   bonus?: number;
 
   @IsOptional()
@@ -48,7 +48,7 @@ export class CreateSalaryDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(40000)
+  @Min(0)
   grossSalary?: number;
 
   @IsOptional()

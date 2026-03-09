@@ -10,9 +10,9 @@ import {
 export class UpdateSalaryDto {
   @IsOptional()
   @IsNumber()
-  @Min(1)
-  @Max(22)
-  workingDays: number;
+  @Min(0)
+  @Max(31)
+  workingDays?: number;
 
   @IsOptional()
   @IsString()
@@ -46,7 +46,7 @@ export class UpdateSalaryDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(40000)
+  @Min(0)
   grossSalary?: number;
 
   @IsOptional()
