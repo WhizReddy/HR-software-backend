@@ -40,7 +40,6 @@
     "class-validator": "^0.14.1",
     "firebase-admin": "^12.2.0",
     "handlebars": "^4.7.8",
-    "hr-exypnos": "file:",
     "luxon": "^3.5.0",
     "mongoose": "^8.5.0",
     "mongoose-unique-validator": "^5.0.1",
