@@ -35,7 +35,13 @@ async function bootstrap() {
       }
 
       const normalizedOrigin = origin.replace(/\/$/, '');
-      if (allowedOrigins.includes(normalizedOrigin)) {
+      const isAllowedConfiguredOrigin = allowedOrigins.includes(normalizedOrigin);
+      const isTrustedVercelPreview = normalizedOrigin.endsWith('.vercel.app');
+      const isLocalhost =
+        normalizedOrigin.startsWith('http://localhost:') ||
+        normalizedOrigin.startsWith('https://localhost:');
+
+      if (isAllowedConfiguredOrigin || isTrustedVercelPreview || isLocalhost) {
         return callback(null, true);
       }
 
