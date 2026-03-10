@@ -22,12 +22,29 @@ async function bootstrap() {
     databaseURL: `https://${configService.get<string>('FIREBASE_PROJECT_ID')}.firebaseio.com`,
   });
 
-  const frontUrl = configService.get<string>('FRONT_URL');
+  const frontUrl = (configService.get<string>('FRONT_URL') ?? '').trim();
+  const allowedOrigins = frontUrl
+    .split(',')
+    .map((value) => value.trim().replace(/\/$/, ''))
+    .filter(Boolean);
 
   app.enableCors({
-    origin: frontUrl ? [frontUrl] : false,
-    methods: 'GET,POST,PUT,DELETE,PATCH',
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`), false);
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     credentials: true,
+    optionsSuccessStatus: 204,
   });
 
   app.useGlobalPipes(
