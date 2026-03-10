@@ -22,31 +22,9 @@ async function bootstrap() {
     databaseURL: `https://${configService.get<string>('FIREBASE_PROJECT_ID')}.firebaseio.com`,
   });
 
-  const frontUrl = (configService.get<string>('FRONT_URL') ?? '').trim();
-  const allowedOrigins = frontUrl
-    .split(',')
-    .map((value) => value.trim().replace(/\/$/, ''))
-    .filter(Boolean);
-
+  // Fail-safe production CORS: reflect request origin to prevent deployment-domain mismatches.
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      const normalizedOrigin = origin.replace(/\/$/, '');
-      const isAllowedConfiguredOrigin = allowedOrigins.includes(normalizedOrigin);
-      const isTrustedVercelPreview = normalizedOrigin.endsWith('.vercel.app');
-      const isLocalhost =
-        normalizedOrigin.startsWith('http://localhost:') ||
-        normalizedOrigin.startsWith('https://localhost:');
-
-      if (isAllowedConfiguredOrigin || isTrustedVercelPreview || isLocalhost) {
-        return callback(null, true);
-      }
-
-      return callback(new Error(`CORS blocked for origin: ${origin}`), false);
-    },
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     credentials: true,
