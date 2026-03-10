@@ -6,64 +6,35 @@ NestJS backend for HR software.
 
 ```bash
 npm ci
-npm run start:dev
-```
-
-Set env vars:
-
-```bash
 cp .env.example .env
-```
-
-## Production Build
-
-```bash
-npm run build
-npm run start:prod
+npm run start:dev
 ```
 
 ## Health Check
 
-Public endpoint:
-
 - `GET /health`
 
-## Production Container
+## Free Deployment (Render)
 
-Build image:
+1. Push this repository to GitHub.
+2. In Render, create a new **Web Service** from this repo.
+3. Render settings:
+   - Build Command: `npm ci && npm run build`
+   - Start Command: `npm run start:prod`
+4. Add all env vars from `.env.example` in Render dashboard.
+5. Deploy and copy backend URL:
+   - `https://<your-service>.onrender.com`
 
-```bash
-docker build -t hr-backend .
-```
+Optional: use `render.yaml` in this repo for Blueprint setup.
 
-Run image:
+## CI
 
-```bash
-docker run --rm -p 3000:3000 --env-file .env hr-backend
-```
+Workflow: `.github/workflows/backend-ci.yml`
 
-## CI/CD (GitHub Actions)
+Runs on pushes/PRs:
+- `npm run build`
 
-Workflow: `.github/workflows/deploy-backend.yml`
+## Notes
 
-Required repository secrets:
-
-- `GHCR_USERNAME`
-- `GHCR_TOKEN`
-- `SSH_HOST`
-- `SSH_USER`
-- `SSH_KEY`
-- `SSH_PORT` (optional)
-
-This workflow builds/pushes:
-
-- `ghcr.io/<owner>/hr-backend:main`
-- `ghcr.io/<owner>/hr-backend:<sha>`
-
-Then deploys on VPS with:
-
-```bash
-cd /opt/hr-software
-docker compose pull backend
-docker compose up -d backend caddy
-```
+- Render free tier may sleep after inactivity.
+- Set `FRONT_URL` to your Vercel app URL.
