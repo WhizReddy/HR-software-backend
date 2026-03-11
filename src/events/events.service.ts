@@ -116,26 +116,27 @@ export class EventsService {
       // Save the event FIRST so it persists even if email sending fails
       const savedEvent = await createdEvent.save();
 
-      // Send email notifications — non-blocking, failures are logged not thrown
-      try {
-        await this.mailService.sendMail({
-          to:
-            createEventDto.participants?.length === 0 ||
-            !createEventDto.participants
-              ? await getAllParticipants(this.userModel, this.authModel)
-              : createEventDto.participants,
+      // Send email notifications truly non-blocking so API response is immediate.
+      const recipients =
+        createEventDto.participants?.length === 0 || !createEventDto.participants
+          ? await getAllParticipants(this.userModel, this.authModel)
+          : createEventDto.participants;
+
+      void this.mailService
+        .sendMail({
+          to: recipients,
           subject: `${createdEvent.title} - ${createdEvent.type}`,
           template: './event',
           context: {
             name: `${createdEvent.description}`,
           },
+        })
+        .catch((mailError) => {
+          console.warn(
+            'Event created but email notification failed:',
+            mailError?.message || mailError,
+          );
         });
-      } catch (mailError) {
-        console.warn(
-          'Event created but email notification failed:',
-          mailError?.message || mailError,
-        );
-      }
 
       return savedEvent;
     } catch (error) {
