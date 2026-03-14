@@ -30,6 +30,8 @@ import { Auth } from 'src/common/schema/auth.schema';
 
 @Injectable()
 export class ApplicantsService {
+  private readonly applicantMailTimeoutMs = 10000;
+
   constructor(
     @InjectModel(Applicant.name)
     private applicantModel: Model<ApplicantDocument>,
@@ -145,28 +147,13 @@ export class ApplicantsService {
       });
 
       const confirmationUrl = `${process.env.FRONT_URL}/applicant/confirm?token=${confirmationToken}`;
-
-      try {
-        await this.mailService.sendMail({
-          to: createApplicantDto.email,
-          subject: 'Confirm Your Application',
-          template: 'successfulApplication',
-          context: {
-            name: createApplicantDto.firstName,
-            positionApplied: createApplicantDto.positionApplied,
-            confirmationUrl,
-          },
-        });
-      } catch (mailErr) {
-        console.warn(
-          'Failed to send confirmation email — auto-confirming applicant:',
-          mailErr.message,
-        );
-        // Auto-confirm since the user can't receive the email
-        applicant.status = ApplicantStatus.ACTIVE;
-        applicant.confirmationToken = null;
-        await applicant.save();
-      }
+      void this.sendApplicantConfirmationEmail(
+        applicant,
+        createApplicantDto.firstName,
+        createApplicantDto.positionApplied,
+        createApplicantDto.email,
+        confirmationUrl,
+      );
 
       // NOTE: Unconfirmed applicant cleanup is handled by ApplicantCleanupService (@Cron every hour)
       return applicant;
@@ -179,6 +166,42 @@ export class ApplicantsService {
         throw err;
       }
       throw new ConflictException('Failed to create applicant');
+    }
+  }
+
+  private async sendApplicantConfirmationEmail(
+    applicant: ApplicantDocument,
+    firstName: string,
+    positionApplied: string,
+    email: string,
+    confirmationUrl: string,
+  ): Promise<void> {
+    try {
+      await Promise.race([
+        this.mailService.sendMail({
+          to: email,
+          subject: 'Confirm Your Application',
+          template: 'successfulApplication',
+          context: {
+            name: firstName,
+            positionApplied,
+            confirmationUrl,
+          },
+        }),
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('Applicant confirmation email timed out'));
+          }, this.applicantMailTimeoutMs);
+        }),
+      ]);
+    } catch (mailErr) {
+      console.warn(
+        'Failed to send confirmation email — auto-confirming applicant:',
+        mailErr instanceof Error ? mailErr.message : mailErr,
+      );
+      applicant.status = ApplicantStatus.ACTIVE;
+      applicant.confirmationToken = null;
+      await applicant.save();
     }
   }
 

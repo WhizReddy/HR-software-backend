@@ -55,6 +55,9 @@ import { HealthController } from './health/health.controller';
           host: config.get('MAIL_SERVER'),
           secure: false,
           port: parseInt(config.get('MAIL_PORT'), 10),
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
 
           auth: {
             user: config.get('MAIL_USERNAME'),
