@@ -37,6 +37,11 @@ export class MailService {
       html,
     };
 
+    if (this.configService.get<string>('BREVO_API_KEY')) {
+      await this.sendWithBrevo(payload);
+      return;
+    }
+
     if (this.configService.get<string>('RESEND_API_KEY')) {
       await this.sendWithResend(payload);
       return;
@@ -141,6 +146,74 @@ export class MailService {
     );
   }
 
+  private async sendWithBrevo(payload: {
+    from: string;
+    to: string[];
+    subject: string;
+    html: string;
+  }): Promise<void> {
+    const apiKey = this.configService.get<string>('BREVO_API_KEY');
+    if (!apiKey) {
+      throw new Error('BREVO_API_KEY is not configured');
+    }
+
+    const senderEmail =
+      this.configService.get<string>('BREVO_SENDER_EMAIL') ??
+      this.configService.get<string>('MAIL_SENDER');
+
+    if (!senderEmail) {
+      throw new Error(
+        'BREVO_SENDER_EMAIL is not configured. Add a verified sender email in Brevo and set it in your environment.',
+      );
+    }
+
+    const senderName =
+      this.configService.get<string>('BREVO_SENDER_NAME') ?? 'HR Platform';
+
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: {
+          name: senderName,
+          email: senderEmail,
+        },
+        to: payload.to.map((email) => ({ email })),
+        subject: payload.subject,
+        htmlContent: payload.html,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (response.ok) {
+      return;
+    }
+
+    const responseText = await response.text();
+    let errorMessage = responseText;
+
+    try {
+      const parsedResponse = JSON.parse(responseText) as {
+        message?: string;
+        code?: string;
+      };
+      errorMessage =
+        parsedResponse.message ??
+        parsedResponse.code ??
+        response.statusText ??
+        'Unknown Brevo error';
+    } catch {
+      errorMessage = responseText || response.statusText;
+    }
+
+    throw new Error(
+      `Brevo request failed (${response.status}): ${errorMessage}`,
+    );
+  }
+
   private async sendWithSmtp(payload: {
     from: string;
     to: string[];
@@ -169,7 +242,7 @@ export class MailService {
 
     if (!host || !port || !user || !pass) {
       throw new Error(
-        'SMTP mail is not configured. Set RESEND_API_KEY for free-tier email delivery or provide MAIL_* SMTP settings.',
+        'SMTP mail is not configured. Set BREVO_API_KEY or RESEND_API_KEY for free-tier email delivery or provide MAIL_* SMTP settings.',
       );
     }
 
@@ -191,6 +264,7 @@ export class MailService {
 
   private getFromAddress(): string {
     return (
+      this.configService.get<string>('BREVO_SENDER_EMAIL') ??
       this.configService.get<string>('RESEND_FROM') ??
       this.configService.get<string>('MAIL_SENDER') ??
       'onboarding@resend.dev'
