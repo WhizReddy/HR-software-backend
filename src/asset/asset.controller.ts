@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Body,
@@ -7,6 +8,7 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import { AssetService } from './asset.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
@@ -42,6 +44,20 @@ export class AssetController {
     @Query('limit') limit: number = 5,
   ) {
     return this.assetService.getAllUserWithAssets(search, users, page, limit);
+  }
+
+  @Roles(Role.ADMIN, Role.HR, Role.DEV, Role.PM)
+  @Get('user/:id')
+  findUserAssets(@Param('id') id: string, @Req() req: any) {
+    const requester = req['user'];
+    const hasElevatedAccess =
+      requester?.role === Role.ADMIN || requester?.role === Role.HR;
+
+    if (!hasElevatedAccess && requester?.sub !== id) {
+      throw new ForbiddenException('You can only view your own assets');
+    }
+
+    return this.assetService.getUserAssets(id);
   }
 
   @Get('sn/:serialNumber')

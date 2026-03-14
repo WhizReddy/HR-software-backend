@@ -1,11 +1,13 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Body,
   Patch,
   Param,
   Query,
+  Req,
 } from '@nestjs/common';
 import { SalaryService } from './salary.service';
 import { CreateSalaryDto } from './dto/create-salary.dto';
@@ -49,7 +51,6 @@ export class SalaryController {
     );
   }
 
-  @Roles(Role.HR, Role.ADMIN)
   @Get('user/:id')
   findByUserId(
     @Param('id') id: string,
@@ -58,7 +59,16 @@ export class SalaryController {
     @Query('graf') graf: boolean,
     @Query('page') page: number,
     @Query('limit') limit: number,
+    @Req() req: any,
   ) {
+    const requester = req['user'];
+    const hasElevatedAccess =
+      requester?.role === Role.ADMIN || requester?.role === Role.HR;
+
+    if (!hasElevatedAccess && requester?.sub !== id) {
+      throw new ForbiddenException('You can only view your own payroll');
+    }
+
     return this.salaryService.findByUserId(page, limit, id, month, year, graf);
   }
 

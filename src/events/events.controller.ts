@@ -91,6 +91,7 @@ export class EventsController {
     return this.eventsService.update(id, updateEventDto, photo);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.eventsService.remove(id);

@@ -46,6 +46,7 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
+  @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,

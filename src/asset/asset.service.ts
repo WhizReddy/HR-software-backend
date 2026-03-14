@@ -361,4 +361,30 @@ export class AssetService {
     }
     return asset;
   }
+
+  async getUserAssets(userId: string): Promise<any> {
+    const user = await this.userModel.findById(userId).populate('auth', 'email');
+
+    if (!user || user.isDeleted) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    const assets = await this.assetModel
+      .find({
+        userId: new mongoose.Types.ObjectId(userId),
+        isDeleted: false,
+      })
+      .sort({ createdAt: -1 });
+
+    return {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      imageUrl: user.imageUrl,
+      phone: user.phone,
+      role: user.role,
+      email: user.auth?.['email'] || '',
+      assets,
+    };
+  }
 }
