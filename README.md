@@ -22,7 +22,12 @@ npm run start:dev
    - Build Command: `npm ci && npm run build`
    - Start Command: `npm run start:prod`
 4. Add all env vars from `.env.example` in Render dashboard.
-5. Deploy and copy backend URL:
+5. For email on the `free` Render plan, set:
+   - `RESEND_API_KEY=<your resend api key>`
+   - `RESEND_FROM=onboarding@resend.dev` for account-only testing, or `no-reply@your-domain.com` after you verify a domain in Resend
+6. If `RESEND_API_KEY` is not set, the app falls back to `MAIL_*` SMTP settings. That fallback will not work on Render free because outbound SMTP ports are blocked.
+7. To send emails to real applicants or employees through Resend, verify a sending domain in Resend and use a `RESEND_FROM` address on that domain.
+8. Deploy and copy backend URL:
    - `https://<your-service>.onrender.com`
 
 Optional: use `render.yaml` in this repo for Blueprint setup.
@@ -38,3 +43,4 @@ Runs on pushes/PRs:
 
 - Render free tier may sleep after inactivity.
 - Set `FRONT_URL` to your Vercel app URL.
+- Resend's default `onboarding@resend.dev` sender can only send test emails to the account owner's email address until a domain is verified.
