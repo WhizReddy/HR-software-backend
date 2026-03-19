@@ -34,6 +34,7 @@ export class VacationController {
     @Query('status') status: string = '',
     @Query('startDate') startDate: string = '',
     @Query('endDate') endDate: string = '',
+    @Query('search') search: string = '',
   ) {
     return this.vacationService.findAll(
       page,
@@ -42,6 +43,7 @@ export class VacationController {
       status,
       startDate,
       endDate,
+      search,
     );
   }
 

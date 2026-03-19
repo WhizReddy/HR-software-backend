@@ -59,6 +59,7 @@ async function checkDatesforUpdate(
       $match: {
         userId: existingVacation.userId,
         endDate: { $gt: today.toJSDate() },
+        isDeleted: { $ne: true },
       },
     },
     {
@@ -105,6 +106,7 @@ async function checkDatesforCreate(
     {
       $match: {
         userId: new mongoose.Types.ObjectId(vacationData.userId),
+        isDeleted: { $ne: true },
       },
     },
   ]);

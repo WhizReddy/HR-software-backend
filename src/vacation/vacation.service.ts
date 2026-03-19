@@ -59,12 +59,14 @@ export class VacationService {
     status?: string,
     startDate?: string,
     endDate?: string,
+    search?: string,
   ): Promise<any> {
     try {
       const filter: any = { isDeleted: false };
 
       if (type) filter.type = type;
       if (status) filter.status = status;
+      if (search) filter.type = new RegExp(search, 'i');
       if (startDate && endDate) {
         filter.startDate = {
           $gte: new Date(startDate),
