@@ -66,7 +66,24 @@ export class VacationService {
 
       if (type) filter.type = type;
       if (status) filter.status = status;
-      if (search) filter.type = new RegExp(search, 'i');
+      if (search) {
+        const matchingUsers = await this.userModel
+          .find({
+            $or: [
+              { firstName: { $regex: search, $options: 'i' } },
+              { lastName: { $regex: search, $options: 'i' } },
+            ],
+          })
+          .select('_id');
+
+        filter.$or = [
+          { type: new RegExp(search, 'i') },
+          { status: new RegExp(search, 'i') },
+          ...(matchingUsers.length > 0
+            ? [{ userId: { $in: matchingUsers.map((user) => user._id) } }]
+            : []),
+        ];
+      }
       if (startDate && endDate) {
         filter.startDate = {
           $gte: new Date(startDate),

@@ -46,14 +46,38 @@ export class AssetService {
     page: number,
     limit: number,
     availability: string,
+    search: string,
   ): Promise<Asset[]> {
     try {
       const filter: FilterQuery<Asset> = {
         isDeleted: false,
       };
+
       if (Object.values(AssetStatus).includes(availability as AssetStatus)) {
         filter.status = availability;
       }
+
+      if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        const matchingUsers = await this.userModel
+          .find({
+            $or: [
+              { firstName: { $regex: searchRegex } },
+              { lastName: { $regex: searchRegex } },
+            ],
+          })
+          .select('_id');
+
+        filter.$or = [
+          { serialNumber: { $regex: searchRegex } },
+          { type: { $regex: searchRegex } },
+          { status: { $regex: searchRegex } },
+          ...(matchingUsers.length > 0
+            ? [{ userId: { $in: matchingUsers.map((user) => user._id) } }]
+            : []),
+        ];
+      }
+
       if (!page && !limit) {
         return this.assetModel
           .find(filter)

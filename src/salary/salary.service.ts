@@ -60,13 +60,20 @@ export class SalaryService {
   ): Promise<any> {
     try {
       const filter: any = {};
-      if (month) filter.month = month;
-      if (year) filter.year = year;
-      if (workingDays) filter.workingDays = workingDays;
-      if (bonus) filter.bonus = bonus;
-      if (!minnetSalary) minnetSalary = 1;
-      if (maxnetSalary && minnetSalary) {
-        filter.netSalary = { $gte: minnetSalary, $lte: maxnetSalary };
+      if (month !== undefined) filter.month = month;
+      if (year !== undefined) filter.year = year;
+      if (workingDays !== undefined) filter.workingDays = workingDays;
+      if (bonus !== undefined) filter.bonus = bonus;
+      if (minnetSalary !== undefined || maxnetSalary !== undefined) {
+        filter.netSalary = {};
+
+        if (minnetSalary !== undefined) {
+          filter.netSalary.$gte = minnetSalary;
+        }
+
+        if (maxnetSalary !== undefined) {
+          filter.netSalary.$lte = maxnetSalary;
+        }
       }
 
       if (fullName) {
@@ -121,10 +128,10 @@ export class SalaryService {
       if (userId) {
         filter.userId = new Types.ObjectId(userId);
       }
-      if (month) {
+      if (month !== undefined) {
         filter.month = month;
       }
-      if (year) {
+      if (year !== undefined) {
         filter.year = year;
       }
 
