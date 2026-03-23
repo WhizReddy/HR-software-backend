@@ -19,6 +19,26 @@ export class SalaryService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
+  private hasNumber(value?: number): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  private normalizePage(page?: number) {
+    if (!this.hasNumber(page)) {
+      return undefined;
+    }
+
+    return Math.max(0, Math.floor(page));
+  }
+
+  private normalizeLimit(limit?: number) {
+    if (!this.hasNumber(limit) || limit <= 0) {
+      return undefined;
+    }
+
+    return Math.floor(limit);
+  }
+
   async create(createSalaryDto: CreateSalaryDto): Promise<Salary> {
     try {
       await this.checkUserId(createSalaryDto.userId);
@@ -59,35 +79,43 @@ export class SalaryService {
     fullName?: string,
   ): Promise<any> {
     try {
-      const hasNumber = (value?: number) =>
-        typeof value === 'number' && Number.isFinite(value);
-
+      const normalizedPage = this.normalizePage(page);
+      const normalizedLimit = this.normalizeLimit(limit);
+      const trimmedFullName = fullName?.trim();
       const filter: any = {};
-      if (hasNumber(month)) filter.month = month;
-      if (hasNumber(year)) filter.year = year;
-      if (hasNumber(workingDays)) filter.workingDays = workingDays;
-      if (hasNumber(bonus)) filter.bonus = bonus;
+      if (this.hasNumber(month)) filter.month = month;
+      if (this.hasNumber(year)) filter.year = year;
+      if (this.hasNumber(workingDays)) filter.workingDays = workingDays;
+      if (this.hasNumber(bonus)) filter.bonus = bonus;
 
-      const hasMinNetSalary = hasNumber(minnetSalary);
-      const hasMaxNetSalary = hasNumber(maxnetSalary);
+      const hasMinNetSalary = this.hasNumber(minnetSalary);
+      const hasMaxNetSalary = this.hasNumber(maxnetSalary);
+      const salaryFloor =
+        hasMinNetSalary && hasMaxNetSalary
+          ? Math.min(minnetSalary, maxnetSalary)
+          : minnetSalary;
+      const salaryCeiling =
+        hasMinNetSalary && hasMaxNetSalary
+          ? Math.max(minnetSalary, maxnetSalary)
+          : maxnetSalary;
 
       if (hasMinNetSalary || hasMaxNetSalary) {
         filter.netSalary = {};
 
-        if (hasMinNetSalary) {
-          filter.netSalary.$gte = minnetSalary;
+        if (this.hasNumber(salaryFloor)) {
+          filter.netSalary.$gte = salaryFloor;
         }
 
-        if (hasMaxNetSalary) {
-          filter.netSalary.$lte = maxnetSalary;
+        if (this.hasNumber(salaryCeiling)) {
+          filter.netSalary.$lte = salaryCeiling;
         }
       }
 
-      if (fullName) {
+      if (trimmedFullName) {
         const users = await this.userModel.find({
           $or: [
-            { firstName: { $regex: fullName, $options: 'i' } },
-            { lastName: { $regex: fullName, $options: 'i' } },
+            { firstName: { $regex: trimmedFullName, $options: 'i' } },
+            { lastName: { $regex: trimmedFullName, $options: 'i' } },
           ],
         });
         filter.userId = { $in: users.map((user) => user._id) };
@@ -96,18 +124,18 @@ export class SalaryService {
         path: 'userId',
         select: 'firstName lastName phone position createdAt',
       };
-      const sort = { month: -1 };
+      const sort = { year: -1 as const, month: -1 as const };
 
-      if (!page && !limit) {
+      if (normalizedPage === undefined || normalizedLimit === undefined) {
         return await this.salaryModel
           .find(filter)
-          .sort({ month: -1 })
+          .sort(sort)
           .populate(populate);
       }
 
       const paginatedSalary = paginate(
-        page,
-        limit,
+        normalizedPage,
+        normalizedLimit,
         this.salaryModel,
         filter,
         sort,
@@ -131,43 +159,42 @@ export class SalaryService {
     graf?: boolean,
   ): Promise<Salary[]> {
     try {
-      const hasNumber = (value?: number) =>
-        typeof value === 'number' && Number.isFinite(value);
-
+      const normalizedPage = this.normalizePage(page);
+      const normalizedLimit = this.normalizeLimit(limit);
       const filter: any = {};
       if (userId) {
         filter.userId = new Types.ObjectId(userId);
       }
-      if (hasNumber(month)) {
+      if (this.hasNumber(month)) {
         filter.month = month;
       }
-      if (hasNumber(year)) {
+      if (this.hasNumber(year)) {
         filter.year = year;
       }
 
       if (graf) {
         const query = this.salaryModel
           .find(filter)
-          .sort({ month: -1, year: -1 })
+          .sort({ year: -1 as const, month: -1 as const })
           .limit(12);
         return query;
       }
-      const sort = { month: -1, year: -1 };
+      const sort = { year: -1 as const, month: -1 as const };
       const populate: PopulateOptions = {
         path: 'userId',
         select: 'firstName lastName phone position createdAt',
       };
 
-      if (!page && !limit) {
+      if (normalizedPage === undefined || normalizedLimit === undefined) {
         return await this.salaryModel
           .find(filter)
-          .sort({ year: -1, month: -1 })
+          .sort({ year: -1 as const, month: -1 as const })
           .populate(populate);
       }
 
       const paginatedSalary = await paginate(
-        page,
-        limit,
+        normalizedPage,
+        normalizedLimit,
         this.salaryModel,
         filter,
         sort,
