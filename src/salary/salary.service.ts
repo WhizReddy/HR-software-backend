@@ -59,19 +59,26 @@ export class SalaryService {
     fullName?: string,
   ): Promise<any> {
     try {
+      const hasNumber = (value?: number) =>
+        typeof value === 'number' && Number.isFinite(value);
+
       const filter: any = {};
-      if (month !== undefined) filter.month = month;
-      if (year !== undefined) filter.year = year;
-      if (workingDays !== undefined) filter.workingDays = workingDays;
-      if (bonus !== undefined) filter.bonus = bonus;
-      if (minnetSalary !== undefined || maxnetSalary !== undefined) {
+      if (hasNumber(month)) filter.month = month;
+      if (hasNumber(year)) filter.year = year;
+      if (hasNumber(workingDays)) filter.workingDays = workingDays;
+      if (hasNumber(bonus)) filter.bonus = bonus;
+
+      const hasMinNetSalary = hasNumber(minnetSalary);
+      const hasMaxNetSalary = hasNumber(maxnetSalary);
+
+      if (hasMinNetSalary || hasMaxNetSalary) {
         filter.netSalary = {};
 
-        if (minnetSalary !== undefined) {
+        if (hasMinNetSalary) {
           filter.netSalary.$gte = minnetSalary;
         }
 
-        if (maxnetSalary !== undefined) {
+        if (hasMaxNetSalary) {
           filter.netSalary.$lte = maxnetSalary;
         }
       }
@@ -124,14 +131,17 @@ export class SalaryService {
     graf?: boolean,
   ): Promise<Salary[]> {
     try {
+      const hasNumber = (value?: number) =>
+        typeof value === 'number' && Number.isFinite(value);
+
       const filter: any = {};
       if (userId) {
         filter.userId = new Types.ObjectId(userId);
       }
-      if (month !== undefined) {
+      if (hasNumber(month)) {
         filter.month = month;
       }
-      if (year !== undefined) {
+      if (hasNumber(year)) {
         filter.year = year;
       }
 
