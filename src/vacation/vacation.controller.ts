@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Body,
@@ -59,7 +60,15 @@ export class VacationController {
   }
 
   @Get('user/:id')
-  findAllWithUsersById(@Param('id') id: string) {
+  findAllWithUsersById(@Param('id') id: string, @Req() req: any) {
+    const requester = req['user'];
+    const hasElevatedAccess =
+      requester?.role === Role.ADMIN || requester?.role === Role.HR;
+
+    if (!hasElevatedAccess && requester?.sub !== id) {
+      throw new ForbiddenException('You can only view your own vacations');
+    }
+
     return this.vacationService.getUserVacation(id);
   }
 
