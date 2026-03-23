@@ -39,6 +39,22 @@ export class SalaryService {
     return Math.floor(limit);
   }
 
+  private buildUserNameFilter(search: string) {
+    const terms = search
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    return {
+      $and: terms.map((term) => ({
+        $or: [
+          { firstName: { $regex: term, $options: 'i' } },
+          { lastName: { $regex: term, $options: 'i' } },
+        ],
+      })),
+    };
+  }
+
   async create(createSalaryDto: CreateSalaryDto): Promise<Salary> {
     try {
       await this.checkUserId(createSalaryDto.userId);
@@ -112,12 +128,9 @@ export class SalaryService {
       }
 
       if (trimmedFullName) {
-        const users = await this.userModel.find({
-          $or: [
-            { firstName: { $regex: trimmedFullName, $options: 'i' } },
-            { lastName: { $regex: trimmedFullName, $options: 'i' } },
-          ],
-        });
+        const users = await this.userModel.find(
+          this.buildUserNameFilter(trimmedFullName),
+        );
         filter.userId = { $in: users.map((user) => user._id) };
       }
       const populate: PopulateOptions = {

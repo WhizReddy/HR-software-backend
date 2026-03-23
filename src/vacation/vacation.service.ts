@@ -28,6 +28,42 @@ export class VacationService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
+  private hasNumber(value?: number): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  private normalizePage(page?: number) {
+    if (!this.hasNumber(page)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.floor(page));
+  }
+
+  private normalizeLimit(limit?: number) {
+    if (!this.hasNumber(limit) || limit <= 0) {
+      return 5;
+    }
+
+    return Math.floor(limit);
+  }
+
+  private buildUserNameFilter(search: string) {
+    const terms = search
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    return {
+      $and: terms.map((term) => ({
+        $or: [
+          { firstName: { $regex: term, $options: 'i' } },
+          { lastName: { $regex: term, $options: 'i' } },
+        ],
+      })),
+    };
+  }
+
   async create(createVacationDto: CreateVacationDto, req: Request) {
     try {
       createVacationDto.userId = await checkRequestUser(this.userModel, req);
@@ -62,23 +98,21 @@ export class VacationService {
     search?: string,
   ): Promise<any> {
     try {
+      const normalizedPage = this.normalizePage(page);
+      const normalizedLimit = this.normalizeLimit(limit);
+      const trimmedSearch = search?.trim();
       const filter: any = { isDeleted: false };
 
       if (type) filter.type = type;
       if (status) filter.status = status;
-      if (search) {
+      if (trimmedSearch) {
         const matchingUsers = await this.userModel
-          .find({
-            $or: [
-              { firstName: { $regex: search, $options: 'i' } },
-              { lastName: { $regex: search, $options: 'i' } },
-            ],
-          })
+          .find(this.buildUserNameFilter(trimmedSearch))
           .select('_id');
 
         filter.$or = [
-          { type: new RegExp(search, 'i') },
-          { status: new RegExp(search, 'i') },
+          { type: new RegExp(trimmedSearch, 'i') },
+          { status: new RegExp(trimmedSearch, 'i') },
           ...(matchingUsers.length > 0
             ? [{ userId: { $in: matchingUsers.map((user) => user._id) } }]
             : []),
@@ -92,7 +126,14 @@ export class VacationService {
       }
 
       const populate = { path: 'userId', select: 'firstName lastName' };
-      return paginate(page, limit, this.vacationModel, filter, {}, populate);
+      return paginate(
+        normalizedPage,
+        normalizedLimit,
+        this.vacationModel,
+        filter,
+        { startDate: -1 as const, createdAt: -1 as const },
+        populate,
+      );
     } catch (error) {
       console.error('Error in findAll method:', error);
       throw new ConflictException(
@@ -191,26 +232,27 @@ export class VacationService {
     search: string,
     users: string,
   ): Promise<User[]> {
-    let objectToPassToMatch: FilterQuery<any> =
-      users === 'with'
-        ? {
-            vacations: { $ne: [] },
-          }
-        : users === 'without'
-          ? {
-              vacations: { $eq: [] },
-            }
-          : {};
+    const normalizedPage = this.normalizePage(page);
+    const normalizedLimit = this.normalizeLimit(limit);
+    const trimmedSearch = search?.trim();
+    const matchConditions: FilterQuery<any>[] = [];
 
-    if (search) {
-      objectToPassToMatch = {
-        ...objectToPassToMatch,
-        $or: [
-          { firstName: { $regex: search, $options: 'i' } },
-          { lastName: { $regex: search, $options: 'i' } },
-        ],
-      };
+    if (users === 'with') {
+      matchConditions.push({ vacations: { $ne: [] } });
+    } else if (users === 'without') {
+      matchConditions.push({ vacations: { $eq: [] } });
     }
+
+    if (trimmedSearch) {
+      matchConditions.push(this.buildUserNameFilter(trimmedSearch));
+    }
+
+    const objectToPassToMatch: FilterQuery<any> =
+      matchConditions.length === 0
+        ? {}
+        : matchConditions.length === 1
+          ? matchConditions[0]
+          : { $and: matchConditions };
 
     try {
       const aggregationPipeline: PipelineStage[] = [
@@ -269,8 +311,8 @@ export class VacationService {
       ];
 
       return aggregatePaginate(
-        page,
-        limit,
+        normalizedPage,
+        normalizedLimit,
         this.userModel,
         objectToPassToMatch,
         aggregationPipeline,
