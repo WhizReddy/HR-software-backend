@@ -5,9 +5,34 @@ import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
 
+const getAllowedOrigins = (configService: ConfigService) => {
+  const configuredOrigins = [
+    configService.get<string>('FRONT_URL'),
+    configService.get<string>('CORS_ORIGINS'),
+  ]
+    .filter(Boolean)
+    .flatMap((value) =>
+      (value ?? '')
+        .split(',')
+        .map((origin) => origin.trim().replace(/\/+$/, ''))
+        .filter(Boolean),
+    );
+
+  return new Set([
+    ...configuredOrigins,
+    'http://localhost:3000',
+    'http://localhost:4173',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:4173',
+    'http://127.0.0.1:5173',
+  ]);
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
+  const allowedOrigins = getAllowedOrigins(configService);
 
   const adminConfig: ServiceAccount = {
     projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
@@ -22,9 +47,17 @@ async function bootstrap() {
     databaseURL: `https://${configService.get<string>('FIREBASE_PROJECT_ID')}.firebaseio.com`,
   });
 
-  // Fail-safe production CORS: reflect request origin to prevent deployment-domain mismatches.
   app.enableCors({
-    origin: true,
+    origin: (origin, callback) => {
+      const normalizedOrigin = origin?.replace(/\/+$/, '');
+
+      if (!normalizedOrigin || allowedOrigins.has(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'));
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     credentials: true,

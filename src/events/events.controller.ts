@@ -21,13 +21,22 @@ import { FileMimeTypeValidationPipe } from 'src/common/pipes/file-mime-type-vali
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
 
+const eventPhotoUploadOptions = {
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 20,
+  },
+};
+
 @Controller('event')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Roles(Role.HR, Role.ADMIN)
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }]))
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }], eventPhotoUploadOptions),
+  )
   @UsePipes(new FileMimeTypeValidationPipe())
   async create(
     @UploadedFiles() files: { photo?: Express.Multer.File[] },
@@ -81,7 +90,10 @@ export class EventsController {
 
   @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }]))
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }], eventPhotoUploadOptions),
+  )
+  @UsePipes(new FileMimeTypeValidationPipe())
   async partialUpdate(
     @Param('id') id: string,
     @Body() updateEventDto: UpdateEventDto,

@@ -57,7 +57,7 @@ export class ApplicantsController {
   @Roles(Role.ADMIN, Role.HR)
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await this.applicantsService.findOne(id);
+    return await this.applicantsService.findOneForDisplay(id);
   }
 
   @Roles(Role.ADMIN, Role.HR)
@@ -105,6 +105,10 @@ export class ApplicantsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() formData: CreateApplicantDto,
   ) {
-    return await this.applicantsService.createApplicant(file, formData);
+    await this.applicantsService.createApplicant(file, formData);
+    return {
+      message:
+        'Application submitted successfully. Please check your email to confirm it.',
+    };
   }
 }

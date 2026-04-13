@@ -19,10 +19,12 @@ import { CreateUserDto } from 'src/auth/dto/create-user.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { paginate } from 'src/common/util/pagination';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { NotificationType } from 'src/common/enum/notification.enum';
@@ -118,17 +120,29 @@ export class ApplicantsService {
 
   async findOne(id: string): Promise<ApplicantDocument> {
     const applicant = await this.applicantModel.findById(id);
-    if (!applicant) {
+    if (!applicant || applicant.isDeleted) {
       throw new NotFoundException(`Applicant with id ${id} not found`);
     }
     return applicant;
+  }
+
+  async findOneForDisplay(id: string) {
+    const applicant = await this.findOne(id);
+    return this.serializeApplicantForResponse(applicant);
   }
 
   async createApplicant(
     file: Express.Multer.File,
     createApplicantDto: CreateApplicantDto,
   ): Promise<Applicant> {
+    let cvAttachmentPath: string | null = null;
+    let applicant: ApplicantDocument | null = null;
+
     try {
+      if (!file) {
+        throw new BadRequestException('CV file is required');
+      }
+
       const isEmployeeWithThisEmail = await this.authModel.findOne({
         email: createApplicantDto.email,
       });
@@ -136,41 +150,52 @@ export class ApplicantsService {
         throw new ConflictException('Email already exists');
       }
 
-      const cvUrl = await this.firebaseService.uploadFile(file, 'cv');
+      cvAttachmentPath = await this.firebaseService.uploadFile(file, 'cv', {
+        visibility: 'private',
+      });
       const confirmationToken = uuidv4();
 
-      const applicant = await this.applicantModel.create({
+      applicant = await this.applicantModel.create({
         ...createApplicantDto,
-        cvAttachment: cvUrl,
+        cvAttachment: cvAttachmentPath,
         status: ApplicantStatus.PENDING,
         confirmationToken,
       });
 
       const confirmationUrl = `${process.env.FRONT_URL}/applicant/confirm?token=${confirmationToken}`;
-      void this.sendApplicantConfirmationEmail(
-        applicant,
+      await this.sendApplicantConfirmationEmail(
         createApplicantDto.firstName,
         createApplicantDto.positionApplied,
         createApplicantDto.email,
         confirmationUrl,
       );
 
-      // NOTE: Unconfirmed applicant cleanup is handled by ApplicantCleanupService (@Cron every hour)
       return applicant;
     } catch (err) {
+      if (applicant) {
+        await applicant.deleteOne().catch((cleanupError) => {
+          console.error('Failed to rollback applicant after email error:', cleanupError);
+        });
+      }
+
+      if (cvAttachmentPath) {
+        await this.firebaseService.deleteFile(cvAttachmentPath);
+      }
+
       console.error('Error creating applicant or sending email:', err);
       if (
+        err instanceof BadRequestException ||
+        err instanceof ServiceUnavailableException ||
         err instanceof ConflictException ||
         err instanceof NotFoundException
       ) {
         throw err;
       }
-      throw new ConflictException('Failed to create applicant');
+      throw new InternalServerErrorException('Failed to create applicant');
     }
   }
 
   private async sendApplicantConfirmationEmail(
-    applicant: ApplicantDocument,
     firstName: string,
     positionApplied: string,
     email: string,
@@ -195,13 +220,13 @@ export class ApplicantsService {
         }),
       ]);
     } catch (mailErr) {
-      console.warn(
-        'Failed to send confirmation email — auto-confirming applicant:',
+      console.error(
+        'Failed to send confirmation email:',
         mailErr instanceof Error ? mailErr.message : mailErr,
       );
-      applicant.status = ApplicantStatus.ACTIVE;
-      applicant.confirmationToken = null;
-      await applicant.save();
+      throw new ServiceUnavailableException(
+        'We could not send the confirmation email. Please try again.',
+      );
     }
   }
 
@@ -238,6 +263,25 @@ export class ApplicantsService {
       }
       throw new InternalServerErrorException(err);
     }
+  }
+
+  private async serializeApplicantForResponse(applicant: ApplicantDocument) {
+    const applicantObject = applicant.toObject();
+    const { confirmationToken, ...responseApplicant } = applicantObject as Record<
+      string,
+      any
+    >;
+
+    if (responseApplicant.cvAttachment) {
+      try {
+        responseApplicant.cvAttachment =
+          await this.firebaseService.getFileAccessUrl(responseApplicant.cvAttachment);
+      } catch (error) {
+        console.error('Failed to resolve applicant CV access URL:', error);
+      }
+    }
+
+    return responseApplicant;
   }
 
   async updateApplicant(
