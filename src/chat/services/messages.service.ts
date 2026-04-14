@@ -56,8 +56,6 @@ export class MessagesService {
   // Retrieve all messages in a conversation
   async findMessagesByConversation(conversationId: string): Promise<Message[]> {
     try {
-      console.log(`Fetching messages for conversation ID: ${conversationId}`);
-
       // Find messages for the specified conversation ID and sort by creation time
       const messages = await this.messageModel
         .find({ conversationId })

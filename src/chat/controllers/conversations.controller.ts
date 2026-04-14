@@ -52,7 +52,6 @@ export class ConversationsController {
   async findMessagesByConversation(
     @Param('conversationId') conversationId: string,
   ) {
-    console.log(`Fetching messages for conversation ID: ${conversationId}`);
     return this.conversationsService.findMessagesByConversation(conversationId);
   }
 }

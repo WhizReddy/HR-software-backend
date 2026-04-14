@@ -24,11 +24,6 @@ export class ConversationsService {
   async createConversation(
     createConversationDto: CreateConversationDto,
   ): Promise<Conversation> {
-    console.log(
-      'Creating a new conversation:',
-      createConversationDto.participants,
-    );
-
     // Check if conversation already exists with the same participants
     const existingConversation = await this.conversationModel
       .findOne({
@@ -40,7 +35,6 @@ export class ConversationsService {
       .exec();
 
     if (existingConversation) {
-      console.log('Conversation already exists:', existingConversation._id);
       return existingConversation;
     }
 
@@ -48,7 +42,6 @@ export class ConversationsService {
     const conversation = new this.conversationModel(createConversationDto);
     try {
       const savedConversation = await conversation.save();
-      console.log('New conversation created:', savedConversation._id);
 
       // Emit event after creating the conversation
       this.eventEmitter.emit('conversation.created', {
@@ -71,11 +64,6 @@ export class ConversationsService {
     session.startTransaction();
 
     try {
-      console.log(
-        'Creating conversation with participants:',
-        createConversationDto.participants,
-      );
-
       // Check if conversation already exists
       let conversation = await this.conversationModel
         .findOne({
@@ -91,13 +79,10 @@ export class ConversationsService {
         // If conversation doesn't exist, create a new one
         conversation = new this.conversationModel(createConversationDto);
         await conversation.save({ session });
-        console.log('New conversation created:', conversation._id);
 
         // Emit event after creating the conversation and message
         this.eventEmitter.emit('conversation.created', { conversation });
       } else {
-        console.log('Conversation already exists:', conversation._id);
-
         // Do not emit 'conversation.created' event
       }
 
@@ -105,7 +90,6 @@ export class ConversationsService {
       createMessageDto.conversationId = conversation._id as string;
       const message = new this.messageModel(createMessageDto);
       await message.save({ session });
-      console.log('First message created with ID:', message._id);
 
       // Commit the transaction
       await session.commitTransaction();
@@ -126,7 +110,6 @@ export class ConversationsService {
   async findAll(): Promise<Conversation[]> {
     try {
       const conversations = await this.conversationModel.find().exec();
-      console.log('Retrieved all conversations');
       return conversations;
     } catch (error) {
       console.error('Failed to retrieve conversations:', error);
@@ -141,7 +124,6 @@ export class ConversationsService {
       if (!conversation) {
         throw new NotFoundException(`Conversation with ID ${id} not found`);
       }
-      console.log(`Conversation retrieved: ${id}`);
       return conversation;
     } catch (error) {
       console.error('Failed to retrieve conversation:', error);
@@ -155,7 +137,6 @@ export class ConversationsService {
       const conversations = await this.conversationModel
         .find({ participants: userId })
         .exec();
-      console.log(`Conversations retrieved for user: ${userId}`);
       return conversations;
     } catch (error) {
       console.error('Failed to retrieve conversations for user:', error);

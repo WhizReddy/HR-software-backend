@@ -47,7 +47,6 @@ export class EventsService {
   ): Promise<Event> {
     try {
       let eventPhotos: string[] = [];
-      console.log(`Creating event: Received ${files?.length || 0} files`);
       if (files && files.length > 0) {
         eventPhotos = await Promise.all(
           files.map(async (file) => {
