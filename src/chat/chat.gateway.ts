@@ -16,12 +16,42 @@ import { Conversation } from './interfaces/conversation.interface';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { Message } from './interfaces/message.interface';
 
+const getAllowedOrigins = () =>
+  new Set(
+    [process.env.FRONT_URL, process.env.CORS_ORIGINS]
+      .filter(Boolean)
+      .flatMap((value) =>
+        (value ?? '')
+          .split(',')
+          .map((origin) => origin.trim().replace(/\/+$/, ''))
+          .filter(Boolean),
+      )
+      .concat([
+        'http://localhost:3000',
+        'http://localhost:4173',
+        'http://localhost:5173',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:4173',
+        'http://127.0.0.1:5173',
+      ]),
+  );
+
 @Injectable()
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: (origin, callback) => {
+      const normalizedOrigin = origin?.replace(/\/+$/, '');
+      const allowedOrigins = getAllowedOrigins();
+
+      if (!normalizedOrigin || allowedOrigins.has(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'));
+    },
     methods: ['GET', 'POST'],
-    secure: true,
+    credentials: true,
   },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -29,10 +59,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   // Handle new client connections
-  handleConnection(client: Socket) {}
+  handleConnection(_client: Socket) {}
 
   // Handle client disconnections
-  handleDisconnect(client: Socket) {}
+  handleDisconnect(_client: Socket) {}
 
   constructor(
     private readonly conversationsService: ConversationsService,
