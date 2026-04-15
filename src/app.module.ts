@@ -14,8 +14,6 @@ import { ApplicantsModule } from './applicants/applicant.module';
 import { MailModule } from './mail/mail.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { SalaryModule } from './salary/salary.module';
-import { ProjectModule } from './project/project.module';
-import { RatingsModule } from './ratings/ratings.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -57,8 +55,6 @@ import { HealthController } from './health/health.controller';
     MailModule,
     FirebaseModule,
     SalaryModule,
-    ProjectModule,
-    RatingsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
