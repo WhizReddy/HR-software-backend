@@ -10,6 +10,7 @@ import {
   UploadedFile,
   Req,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from '../common/schema/user.schema';
@@ -17,6 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { FileMimeTypeValidationPipe } from 'src/common/pipes/file-mime-type-validation.pipe';
 
 @Controller('user')
 export class UserController {
@@ -62,7 +64,10 @@ export class UserController {
   }
 
   @Post('upload-image')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
+  @UsePipes(new FileMimeTypeValidationPipe({ fieldKinds: { file: 'image' } }))
   async uploadImage(
     @UploadedFile() file: Express.Multer.File,
     @Req() req: Request,

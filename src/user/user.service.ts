@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -112,6 +113,10 @@ export class UserService {
   }
 
   async uploadImage(file: Express.Multer.File, req: any): Promise<string> {
+    if (!file) {
+      throw new BadRequestException('Profile image file is required');
+    }
+
     try {
       const profileImageUrl = await this.firebaseService.uploadFile(
         file,

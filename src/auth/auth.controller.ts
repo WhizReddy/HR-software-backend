@@ -22,7 +22,7 @@ import { Role } from 'src/common/enum/role.enum';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
+  @Roles(Role.ADMIN, Role.HR)
   @Post('/signup')
   async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.authService.signUp(createUserDto);

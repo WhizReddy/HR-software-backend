@@ -16,7 +16,7 @@ import { UpdatePasswordDto } from './dto/updatePasswordDto';
 import { generateRandomPassword } from 'src/common/util/generateRandomPassword';
 import { Auth } from 'src/common/schema/auth.schema';
 import { MailService } from 'src/mail/mail.service';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
@@ -27,6 +27,10 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
+
+  private hashResetToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
 
   async signUp(createUserDto: CreateUserDto): Promise<User> {
     try {
@@ -143,7 +147,7 @@ export class AuthService {
       }
 
       const resetToken = randomBytes(32).toString('hex');
-      userAuth.resetPasswordToken = resetToken;
+      userAuth.resetPasswordToken = this.hashResetToken(resetToken);
       userAuth.resetPasswordExpires = Date.now() + 3600000;
       await userAuth.save();
 
@@ -171,9 +175,13 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<string> {
     try {
       const { token, newPassword } = resetPasswordDto;
+      const hashedToken = this.hashResetToken(token);
 
       const userAuth = await this.authModel.findOne({
-        resetPasswordToken: token,
+        $or: [
+          { resetPasswordToken: hashedToken },
+          { resetPasswordToken: token },
+        ],
         resetPasswordExpires: { $gt: Date.now() },
       });
 

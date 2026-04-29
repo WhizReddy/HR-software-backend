@@ -1,4 +1,4 @@
-import { MailerService } from '@nestjs-modules/mailer';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MailService } from './mail.service';
 
@@ -10,9 +10,9 @@ describe('MailService', () => {
       providers: [
         MailService,
         {
-          provide: MailerService,
+          provide: ConfigService,
           useValue: {
-            sendMail: jest.fn(),
+            get: jest.fn(),
           },
         },
       ],

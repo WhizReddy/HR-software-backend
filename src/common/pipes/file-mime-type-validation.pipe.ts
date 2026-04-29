@@ -1,7 +1,23 @@
 import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 
+type AllowedFileKind = 'image' | 'cv';
+
+interface FileMimeTypeValidationOptions {
+  fieldKinds?: Record<string, AllowedFileKind>;
+}
+
 @Injectable()
 export class FileMimeTypeValidationPipe implements PipeTransform {
+  private readonly fieldKinds: Record<string, AllowedFileKind>;
+
+  constructor(options: FileMimeTypeValidationOptions = {}) {
+    this.fieldKinds = {
+      photo: 'image',
+      file: 'cv',
+      ...options.fieldKinds,
+    };
+  }
+
   private allowedImageMimeTypes = [
     'image/jpeg',
     'image/png',
@@ -27,15 +43,15 @@ export class FileMimeTypeValidationPipe implements PipeTransform {
       return value;
     }
 
-    if (value?.photo) {
-      const files = Array.isArray(value.photo) ? value.photo : [value.photo];
-      for (const file of files) {
-        this.validateImageFile(file);
+    if (value && typeof value === 'object') {
+      for (const [fieldName, fieldValue] of Object.entries(value)) {
+        const files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        for (const file of files) {
+          if (this.isUploadedFile(file)) {
+            this.validateUploadedFile(file, fieldName);
+          }
+        }
       }
-    }
-
-    if (value?.file) {
-      this.validateCvFile(value.file);
     }
 
     return value;
@@ -50,15 +66,26 @@ export class FileMimeTypeValidationPipe implements PipeTransform {
     );
   }
 
-  private validateUploadedFile(file: Express.Multer.File) {
-    if (file.fieldname === 'photo') {
+  private validateUploadedFile(
+    file: Express.Multer.File,
+    fallbackFieldName = file.fieldname,
+  ) {
+    const fileKind =
+      this.fieldKinds[file.fieldname] ?? this.fieldKinds[fallbackFieldName];
+
+    if (fileKind === 'image') {
       this.validateImageFile(file);
       return;
     }
 
-    if (file.fieldname === 'file') {
+    if (fileKind === 'cv') {
       this.validateCvFile(file);
+      return;
     }
+
+    throw new BadRequestException(
+      `Unsupported upload field: ${file.fieldname}`,
+    );
   }
 
   private validateImageFile(file?: Express.Multer.File) {
