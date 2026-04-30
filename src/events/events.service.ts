@@ -117,7 +117,8 @@ export class EventsService {
 
       // Send email notifications truly non-blocking so API response is immediate.
       const recipients =
-        createEventDto.participants?.length === 0 || !createEventDto.participants
+        createEventDto.participants?.length === 0 ||
+        !createEventDto.participants
           ? await getAllParticipants(this.userModel, this.authModel)
           : createEventDto.participants;
 

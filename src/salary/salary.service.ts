@@ -40,10 +40,7 @@ export class SalaryService {
   }
 
   private buildUserNameFilter(search: string) {
-    const terms = search
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
+    const terms = search.trim().split(/\s+/).filter(Boolean);
 
     return {
       $and: terms.map((term) => ({

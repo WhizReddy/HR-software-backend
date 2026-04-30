@@ -35,7 +35,10 @@ export class EventsController {
   @Roles(Role.HR, Role.ADMIN)
   @Post()
   @UseInterceptors(
-    FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }], eventPhotoUploadOptions),
+    FileFieldsInterceptor(
+      [{ name: 'photo', maxCount: 20 }],
+      eventPhotoUploadOptions,
+    ),
   )
   @UsePipes(new FileMimeTypeValidationPipe())
   async create(
@@ -91,7 +94,10 @@ export class EventsController {
   @Roles(Role.HR, Role.ADMIN)
   @Patch(':id')
   @UseInterceptors(
-    FileFieldsInterceptor([{ name: 'photo', maxCount: 20 }], eventPhotoUploadOptions),
+    FileFieldsInterceptor(
+      [{ name: 'photo', maxCount: 20 }],
+      eventPhotoUploadOptions,
+    ),
   )
   @UsePipes(new FileMimeTypeValidationPipe())
   async partialUpdate(

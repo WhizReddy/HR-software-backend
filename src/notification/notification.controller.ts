@@ -33,9 +33,7 @@ export class NotificationController {
       requester?.role === Role.ADMIN || requester?.role === Role.HR;
 
     if (!hasElevatedAccess && requester?.sub !== id) {
-      throw new ForbiddenException(
-        'You can only view your own notifications',
-      );
+      throw new ForbiddenException('You can only view your own notifications');
     }
 
     return this.notificationService.getNotificationsByUserId(id, period);

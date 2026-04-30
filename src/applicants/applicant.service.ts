@@ -174,7 +174,10 @@ export class ApplicantsService {
     } catch (err) {
       if (applicant) {
         await applicant.deleteOne().catch((cleanupError) => {
-          console.error('Failed to rollback applicant after email error:', cleanupError);
+          console.error(
+            'Failed to rollback applicant after email error:',
+            cleanupError,
+          );
         });
       }
 
@@ -264,16 +267,17 @@ export class ApplicantsService {
   }
 
   private async serializeApplicantForResponse(applicant: ApplicantDocument) {
-    const applicantObject = applicant.toObject();
-    const { confirmationToken, ...responseApplicant } = applicantObject as Record<
-      string,
-      any
-    >;
+    const responseApplicant = {
+      ...(applicant.toObject() as Record<string, any>),
+    };
+    delete responseApplicant.confirmationToken;
 
     if (responseApplicant.cvAttachment) {
       try {
         responseApplicant.cvAttachment =
-          await this.firebaseService.getFileAccessUrl(responseApplicant.cvAttachment);
+          await this.firebaseService.getFileAccessUrl(
+            responseApplicant.cvAttachment,
+          );
       } catch (error) {
         console.error('Failed to resolve applicant CV access URL:', error);
       }

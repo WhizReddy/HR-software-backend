@@ -68,9 +68,8 @@ export class MailService {
 
     const templatePath = await this.resolveTemplatePath(templateName);
     const templateSource = await fs.readFile(templatePath, 'utf-8');
-    const compiledTemplate = Handlebars.compile<Record<string, any>>(
-      templateSource,
-    );
+    const compiledTemplate =
+      Handlebars.compile<Record<string, any>>(templateSource);
 
     this.templateCache.set(templateName, compiledTemplate);
     return compiledTemplate;
