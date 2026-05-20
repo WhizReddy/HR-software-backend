@@ -11,6 +11,7 @@ async function validateData(
   userModel: Model<User>,
   id: string,
   vote: VoteDto,
+  userId: string,
 ): Promise<void> {
   const event = await eventModel.findById(id as unknown as Types.ObjectId);
 
@@ -25,9 +26,9 @@ async function validateData(
     throw new BadRequestException('Event date has passed');
   }
 
-  const user = await userModel.findById(vote.userId);
+  const user = await userModel.findById(userId);
   if (!user) {
-    throw new NotFoundException(`User with id ${vote.userId} not found`);
+    throw new NotFoundException(`User with id ${userId} not found`);
   }
 
   if (!event.poll || !event.poll.options) {

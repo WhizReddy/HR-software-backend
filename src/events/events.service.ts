@@ -339,12 +339,12 @@ export class EventsService {
     }
   }
 
-  async addVote(id: string, vote: VoteDto): Promise<Event> {
-    return addVote(this.eventModel, this.userModel, id, vote);
+  async addVote(id: string, vote: VoteDto, userId: string): Promise<Event> {
+    return addVote(this.eventModel, this.userModel, id, vote, userId);
   }
 
-  async removeVote(id: string, vote: VoteDto): Promise<Event> {
-    return removeVote(this.eventModel, this.userModel, id, vote);
+  async removeVote(id: string, vote: VoteDto, userId: string): Promise<Event> {
+    return removeVote(this.eventModel, this.userModel, id, vote, userId);
   }
 
   async getEventPollResults(id: string): Promise<PollOption[]> {

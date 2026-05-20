@@ -9,12 +9,4 @@ export class AppController {
     return 'Hello Exypnos';
   }
 
-  @Public()
-  @Get('health')
-  getHealth() {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
-  }
 }

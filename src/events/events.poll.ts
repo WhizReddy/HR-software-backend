@@ -14,10 +14,11 @@ async function addVote(
   userModel: Model<User>,
   id: string,
   vote: VoteDto,
+  userId: string,
 ): Promise<Event> {
-  await validateData(eventModel, userModel, id, vote);
+  await validateData(eventModel, userModel, id, vote, userId);
   const event = await eventModel.findById(id);
-  const user = await userModel.findById(vote.userId);
+  const user = await userModel.findById(userId);
 
   let existingVote: string | null = null;
   for (const option of event.poll.options) {
@@ -26,7 +27,7 @@ async function addVote(
     );
     if (existingVoter) {
       existingVote = option.option;
-      break; // found the vote, safe to stop iterating
+      break;
     }
   }
   if (existingVote) {
@@ -79,11 +80,12 @@ async function removeVote(
   userModel: Model<User>,
   id: string,
   vote: VoteDto,
+  userId: string,
 ): Promise<Event> {
-  await validateData(eventModel, userModel, id, vote);
+  await validateData(eventModel, userModel, id, vote, userId);
   const event = await eventModel.findById(id);
   const option = event.poll.options.find((opt) => opt.option === vote.option);
-  const user = await userModel.findById(vote.userId);
+  const user = await userModel.findById(userId);
 
   if (
     !option.voters.some((voter) => voter._id.toString() === user._id.toString())

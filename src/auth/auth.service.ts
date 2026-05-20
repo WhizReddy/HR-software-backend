@@ -93,7 +93,7 @@ export class AuthService {
         email: signInUserDto.email,
       });
       if (!userAuth || userAuth.isDeleted) {
-        throw new NotFoundException('Email not found');
+        throw new UnauthorizedException('Invalid credentials');
       }
 
       const user = await this.userModel
@@ -101,7 +101,7 @@ export class AuthService {
         .populate('auth', 'email -_id');
 
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new UnauthorizedException('Invalid credentials');
       }
 
       const isMatch = await bcrypt.compare(
@@ -127,10 +127,7 @@ export class AuthService {
         },
       };
     } catch (err) {
-      if (
-        err instanceof UnauthorizedException ||
-        err instanceof NotFoundException
-      ) {
+      if (err instanceof UnauthorizedException) {
         throw err;
       }
       throw new InternalServerErrorException('Server error');
@@ -274,6 +271,11 @@ export class AuthService {
       if (!deletedAuth) {
         throw new NotFoundException('User not found');
       }
+
+      await this.userModel.updateMany(
+        { auth: deletedAuth._id },
+        { isDeleted: true },
+      );
 
       return 'User deleted successfully';
     } catch (err) {

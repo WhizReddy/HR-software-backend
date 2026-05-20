@@ -32,11 +32,22 @@ export class UserService {
       const filter: any = { isDeleted: { $ne: true } };
 
       if (search) {
+        const authMatches = await this.authModel
+          .find({
+            email: { $regex: search, $options: 'i' },
+            isDeleted: { $ne: true },
+          })
+          .select('_id');
+        const authIds = authMatches.map((auth) => auth._id);
+
         filter.$or = [
           { firstName: { $regex: search, $options: 'i' } },
           { lastName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
         ];
+
+        if (authIds.length > 0) {
+          filter.$or.push({ auth: { $in: authIds } });
+        }
       }
 
       if (!limit && !page) {

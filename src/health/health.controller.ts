@@ -5,7 +5,10 @@ import { Public } from '../common/decorator/public.decorator';
 export class HealthController {
   @Public()
   @Get()
-  check(): string {
-    return 'OK';
+  check() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

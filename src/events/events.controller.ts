@@ -10,7 +10,10 @@ import {
   UploadedFiles,
   Query,
   UsePipes,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -20,6 +23,15 @@ import { Public } from 'src/common/decorator/public.decorator';
 import { FileMimeTypeValidationPipe } from 'src/common/pipes/file-mime-type-validation.pipe';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
+
+type RequestUser = {
+  sub: string;
+  role?: Role | string;
+};
+
+type RequestWithUser = Request & {
+  user?: RequestUser;
+};
 
 const eventPhotoUploadOptions = {
   limits: {
@@ -87,7 +99,12 @@ export class EventsController {
   }
 
   @Get(':id/user/:userId')
-  getEventsByUser(@Param('id') id: string, @Param('userId') userId: string) {
+  getEventsByUser(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    this.assertCanAccessUserPoll(userId, req.user);
     return this.eventsService.getOptionThatUserVotedFor(id, userId);
   }
 
@@ -116,12 +133,37 @@ export class EventsController {
   }
 
   @Post(':id/vote')
-  addVote(@Param('id') id: string, @Body() voteDto: VoteDto) {
-    return this.eventsService.addVote(id, voteDto);
+  addVote(
+    @Param('id') id: string,
+    @Body() voteDto: VoteDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.eventsService.addVote(id, voteDto, req.user.sub);
   }
 
   @Delete(':id/vote')
-  removeVote(@Param('id') id: string, @Body() voteDto: VoteDto) {
-    return this.eventsService.removeVote(id, voteDto);
+  removeVote(
+    @Param('id') id: string,
+    @Body() voteDto: VoteDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.eventsService.removeVote(id, voteDto, req.user.sub);
+  }
+
+  private assertCanAccessUserPoll(userId: string, requester?: RequestUser) {
+    if (!requester?.sub) {
+      throw new ForbiddenException('You are not allowed to access this poll');
+    }
+
+    const isElevated =
+      requester.role === Role.ADMIN || requester.role === Role.HR;
+
+    if (isElevated) {
+      return;
+    }
+
+    if (String(userId) !== String(requester.sub)) {
+      throw new ForbiddenException('You can only access your own poll vote');
+    }
   }
 }
