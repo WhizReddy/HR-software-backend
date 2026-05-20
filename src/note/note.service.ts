@@ -23,8 +23,17 @@ export class NoteService {
 
   async create(createNoteDto: CreateNoteDto): Promise<Note> {
     try {
-      createNoteDto.userId = new Types.ObjectId(createNoteDto.userId);
-      const createdNote = new this.noteModel(createNoteDto);
+      if (
+        !createNoteDto.userId ||
+        !Types.ObjectId.isValid(createNoteDto.userId)
+      ) {
+        throw new BadRequestException('Valid userId is required');
+      }
+
+      const createdNote = new this.noteModel({
+        ...createNoteDto,
+        userId: new Types.ObjectId(createNoteDto.userId),
+      });
       await this.validateNoteData(createdNote);
       return createdNote.save();
     } catch (error) {

@@ -1,11 +1,11 @@
 import {
   IsBoolean,
   IsDateString,
+  IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Types } from 'mongoose';
 
 export class CreateNoteDto {
   @IsNotEmpty()
@@ -16,8 +16,9 @@ export class CreateNoteDto {
   @IsString()
   description: string;
 
-  @IsString()
-  userId: Types.ObjectId;
+  @IsOptional()
+  @IsMongoId()
+  userId?: string;
 
   @IsNotEmpty()
   @IsBoolean()
@@ -25,5 +26,5 @@ export class CreateNoteDto {
 
   @IsOptional()
   @IsDateString()
-  date: Date;
+  date?: Date;
 }
