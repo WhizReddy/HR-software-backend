@@ -18,6 +18,7 @@ import { Auth } from 'src/common/schema/auth.schema';
 import { MailService } from 'src/mail/mail.service';
 import { createHash, randomBytes } from 'crypto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { sanitizeUserResponse } from 'src/common/util/sanitize-user-response';
 
 @Injectable()
 export class AuthService {
@@ -97,7 +98,7 @@ export class AuthService {
 
       const user = await this.userModel
         .findOne({ auth: userAuth._id })
-        .populate('auth');
+        .populate('auth', 'email -_id');
 
       if (!user) {
         throw new NotFoundException('User not found');
@@ -122,10 +123,7 @@ export class AuthService {
         message: 'Authenticated Successfully',
         data: {
           access_token: await this.jwtService.signAsync(payload),
-          user: {
-            ...user.toObject(),
-            email: userAuth.email,
-          },
+          user: sanitizeUserResponse(user, userAuth.email),
         },
       };
     } catch (err) {
@@ -212,13 +210,13 @@ export class AuthService {
 
       const user = await this.userModel
         .findOne({ auth: userAuth._id })
-        .populate('auth');
+        .populate('auth', 'email -_id');
 
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
-      return user;
+      return sanitizeUserResponse(user, userAuth.email);
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
       console.error('Error retrieving user:', err);
