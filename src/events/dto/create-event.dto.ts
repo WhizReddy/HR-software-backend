@@ -6,7 +6,6 @@ import {
   IsArray,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { Poll } from '../../common/schema/event.schema';
 import { EventType } from 'src/common/enum/event.enum';
 export class CreateEventDto {
   @IsString()
@@ -27,19 +26,6 @@ export class CreateEventDto {
   @IsOptional()
   @IsDateString()
   endDate: Date;
-
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return value;
-      }
-    }
-    return value;
-  })
-  poll: Poll;
 
   @IsOptional()
   @Transform(({ value }) => {

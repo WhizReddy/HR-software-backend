@@ -9,26 +9,18 @@ import { FilterQuery, Model, Types } from 'mongoose';
 import { ObjectId } from 'mongodb';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Event, PollOption } from '../common/schema/event.schema';
+import { Event } from '../common/schema/event.schema';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/common/enum/notification.enum';
 import { User } from 'src/common/schema/user.schema';
-import { VoteDto } from './dto/vote.dto';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { Auth } from 'src/common/schema/auth.schema';
 import { MailService } from 'src/mail/mail.service';
 import {
-  validatePollData,
   validateDate,
   getAllParticipants,
   getParticipantsByUserId,
 } from './events.utils';
-import {
-  addVote,
-  removeVote,
-  getEventPollResults,
-  getOptionThatUserVotedFor,
-} from './events.poll';
 import { paginate } from 'src/common/util/pagination';
 @Injectable()
 export class EventsService {
@@ -87,13 +79,6 @@ export class EventsService {
         createdEvent.endDate?.toISOString(),
       );
 
-      if (createdEvent.poll) {
-        createdEvent.poll = validatePollData(createdEvent.poll);
-        createdEvent.poll.options.forEach((opt) => {
-          opt.votes = 0;
-          opt.voters = [];
-        });
-      }
       let readers: ObjectId[] = [];
       if (participants.length === 0) {
         readers = (await this.userModel.find().select('_id')).map(
@@ -248,16 +233,6 @@ export class EventsService {
         throw new NotFoundException(`Event with id ${id} not found`);
       }
 
-      if (!existingEvent.poll && updateEventDto.poll) {
-        validatePollData(updateEventDto.poll);
-        updateEventDto.poll.options = updateEventDto.poll.options.map(
-          (opt) => ({
-            ...opt,
-            votes: 0,
-            voters: [],
-          }),
-        );
-      }
       // Initialize participants as empty — populated only if provided in the payload
       let participants: ObjectId[] = [];
       if (
@@ -339,26 +314,6 @@ export class EventsService {
     }
   }
 
-  async addVote(id: string, vote: VoteDto, userId: string): Promise<Event> {
-    return addVote(this.eventModel, this.userModel, id, vote, userId);
-  }
-
-  async removeVote(id: string, vote: VoteDto, userId: string): Promise<Event> {
-    return removeVote(this.eventModel, this.userModel, id, vote, userId);
-  }
-
-  async getEventPollResults(id: string): Promise<PollOption[]> {
-    return getEventPollResults(this.eventModel, id);
-  }
-
-  async getOptionThatUserVotedFor(id: string, userId: string): Promise<number> {
-    return getOptionThatUserVotedFor(
-      this.eventModel,
-      this.userModel,
-      id,
-      userId,
-    );
-  }
   async getEventsByUserId(
     id: string,
     search: string,

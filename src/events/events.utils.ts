@@ -1,77 +1,9 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Types, Model } from 'mongoose';
-import { Poll, Event } from '../common/schema/event.schema';
-import { VoteDto } from './dto/vote.dto';
 import { User } from '../common/schema/user.schema';
 import { Auth } from '../common/schema/auth.schema';
 import { DateTime } from 'luxon';
 
-async function validateData(
-  eventModel: Model<Event>,
-  userModel: Model<User>,
-  id: string,
-  vote: VoteDto,
-  userId: string,
-): Promise<void> {
-  const event = await eventModel.findById(id as unknown as Types.ObjectId);
-
-  if (!event) {
-    throw new NotFoundException(`Event with id ${id} not found`);
-  }
-
-  const now = DateTime.now();
-  const eventStartDate = DateTime.fromISO(event.startDate.toString());
-
-  if (eventStartDate <= now) {
-    throw new BadRequestException('Event date has passed');
-  }
-
-  const user = await userModel.findById(userId);
-  if (!user) {
-    throw new NotFoundException(`User with id ${userId} not found`);
-  }
-
-  if (!event.poll || !event.poll.options) {
-    throw new BadRequestException('This event does not have a poll');
-  }
-}
-
-function validatePollData(poll: Poll) {
-  if (typeof poll === 'string') {
-    poll = JSON.parse(poll);
-  }
-
-  if (typeof poll !== 'object' || poll === null) {
-    throw new BadRequestException('Invalid poll data');
-  }
-  if (!poll.question || poll.question.length === 0) {
-    throw new BadRequestException('Poll question cannot be empty');
-  }
-
-  if (!Array.isArray(poll.options) || poll.options.length <= 1) {
-    throw new BadRequestException('Poll options must be more than one');
-  }
-
-  if (poll.options.length > 3) {
-    throw new BadRequestException('Poll options must be 3 or 2');
-  }
-
-  if (poll.options.some((opt) => !opt.option || opt.option.length <= 1)) {
-    throw new BadRequestException(
-      'Poll option cannot be less than 1 character',
-    );
-  }
-
-  for (let i = 0; i < poll.options.length; i++) {
-    for (let j = i + 1; j < poll.options.length; j++) {
-      if (poll.options[i].option === poll.options[j].option) {
-        throw new BadRequestException('Poll options must be unique');
-      }
-    }
-  }
-
-  return poll;
-}
 async function getAllParticipants(
   userModel: Model<User>,
   authModel: Model<Auth>,
@@ -128,8 +60,6 @@ async function getParticipantsByUserId(
 }
 
 export {
-  validateData,
-  validatePollData,
   getAllParticipants,
   validateDate,
   getParticipantsByUserId,

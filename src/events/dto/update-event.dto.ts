@@ -7,7 +7,6 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { EventType } from 'src/common/enum/event.enum';
-import { Poll } from 'src/common/schema/event.schema';
 
 export class UpdateEventDto {
   @IsOptional()
@@ -43,16 +42,4 @@ export class UpdateEventDto {
   @IsString()
   location: string;
 
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return value;
-      }
-    }
-    return value;
-  })
-  poll: Poll;
 }
