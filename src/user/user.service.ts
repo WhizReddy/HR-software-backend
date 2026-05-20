@@ -11,6 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { paginate } from 'src/common/util/pagination';
 import { EngagementType } from 'src/common/enum/position.enum';
+import { sanitizeUserResponse } from 'src/common/util/sanitize-user-response';
 
 @Injectable()
 export class UserService {
@@ -39,12 +40,26 @@ export class UserService {
       }
 
       if (!limit && !page) {
-        return await this.userModel.find(filter).populate('auth', 'email');
+        const users = await this.userModel
+          .find(filter)
+          .populate('auth', 'email -_id');
+        return users.map((user) => sanitizeUserResponse(user));
       }
 
-      const populate = { path: 'auth', select: 'email' };
+      const populate = { path: 'auth', select: 'email -_id' };
       const sort = { createdAt: -1 };
-      return paginate(page, limit, this.userModel, filter, sort, populate);
+      const result = await paginate(
+        page,
+        limit,
+        this.userModel,
+        filter,
+        sort,
+        populate,
+      );
+      return {
+        ...result,
+        data: result.data.map((user) => sanitizeUserResponse(user)),
+      };
     } catch (err) {
       if (err instanceof ConflictException || err instanceof NotFoundException)
         throw err;
@@ -53,11 +68,13 @@ export class UserService {
   }
 
   async findOne(id: string): Promise<User | null> {
-    const user = await this.userModel.findById(id).populate('auth');
+    const user = await this.userModel
+      .findById(id)
+      .populate('auth', 'email -_id');
     if (!user || user.isDeleted) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-    return user;
+    return sanitizeUserResponse(user);
   }
 
   async updateUser(updateUserDto: UpdateUserDto, id: string): Promise<User> {

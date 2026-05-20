@@ -389,7 +389,7 @@ export class AssetService {
   async getUserAssets(userId: string): Promise<any> {
     const user = await this.userModel
       .findById(userId)
-      .populate('auth', 'email');
+      .populate('auth', 'email -_id');
 
     if (!user || user.isDeleted) {
       throw new NotFoundException(`User with id ${userId} not found`);
