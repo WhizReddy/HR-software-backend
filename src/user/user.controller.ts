@@ -29,8 +29,9 @@ export class UserController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string = '',
+    @Query('role') role: string = '',
   ): Promise<User[]> {
-    return await this.userService.findAll(page, limit, search);
+    return await this.userService.findAll(page, limit, search, role);
   }
 
   @Get('search/:name')

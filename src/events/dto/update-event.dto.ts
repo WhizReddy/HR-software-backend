@@ -41,5 +41,4 @@ export class UpdateEventDto {
   @IsOptional()
   @IsString()
   location: string;
-
 }

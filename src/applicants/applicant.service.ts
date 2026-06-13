@@ -60,13 +60,25 @@ export class ApplicantsService {
     startDate?: Date,
     endDate?: Date,
     search?: string,
+    status?: string,
   ): Promise<Applicant[]> {
     try {
       const filter: any = {};
       filter.isDeleted = false;
-      filter.status = {
-        $nin: [ApplicantStatus.PENDING],
-      };
+      const normalizedStatus = status?.trim();
+
+      if (
+        normalizedStatus &&
+        Object.values(ApplicantStatus).includes(
+          normalizedStatus as ApplicantStatus,
+        )
+      ) {
+        filter.status = normalizedStatus;
+      } else {
+        filter.status = {
+          $nin: [ApplicantStatus.PENDING],
+        };
+      }
 
       if (search) {
         filter.$or = [

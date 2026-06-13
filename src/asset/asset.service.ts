@@ -19,6 +19,11 @@ export class AssetService {
     @InjectModel(Asset.name) private assetModel: Model<Asset>,
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
+
+  private escapeRegex(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   async create(createAssetDto: CreateAssetDto): Promise<Asset> {
     try {
       await this.validateAssetData(createAssetDto);
@@ -47,14 +52,27 @@ export class AssetService {
     limit: number,
     availability: string,
     search: string,
+    status: string = '',
+    type: string = '',
   ): Promise<Asset[]> {
     try {
       const filter: FilterQuery<Asset> = {
         isDeleted: false,
       };
+      const normalizedStatus = (status || availability)?.trim();
+      const normalizedType = type?.trim();
 
-      if (Object.values(AssetStatus).includes(availability as AssetStatus)) {
-        filter.status = availability;
+      if (
+        Object.values(AssetStatus).includes(normalizedStatus as AssetStatus)
+      ) {
+        filter.status = normalizedStatus;
+      }
+
+      if (normalizedType) {
+        filter.type = {
+          $regex: `^${this.escapeRegex(normalizedType)}$`,
+          $options: 'i',
+        };
       }
 
       if (search) {

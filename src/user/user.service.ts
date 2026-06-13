@@ -12,6 +12,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 import { paginate } from 'src/common/util/pagination';
 import { EngagementType } from 'src/common/enum/position.enum';
 import { sanitizeUserResponse } from 'src/common/util/sanitize-user-response';
+import { Role } from 'src/common/enum/role.enum';
 
 @Injectable()
 export class UserService {
@@ -27,9 +28,18 @@ export class UserService {
     page?: number,
     limit?: number,
     search?: string,
+    role?: string,
   ): Promise<User[]> {
     try {
       const filter: any = { isDeleted: { $ne: true } };
+      const normalizedRole = role?.trim();
+
+      if (
+        normalizedRole &&
+        Object.values(Role).includes(normalizedRole as Role)
+      ) {
+        filter.role = normalizedRole;
+      }
 
       if (search) {
         const authMatches = await this.authModel

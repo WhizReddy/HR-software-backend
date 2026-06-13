@@ -59,8 +59,4 @@ async function getParticipantsByUserId(
   return userIds;
 }
 
-export {
-  getAllParticipants,
-  validateDate,
-  getParticipantsByUserId,
-};
+export { getAllParticipants, validateDate, getParticipantsByUserId };

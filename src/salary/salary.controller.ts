@@ -37,6 +37,7 @@ export class SalaryController {
     @Query('workingDays') workingDays?: number,
     @Query('bonus') bonus?: number,
     @Query('fullName') fullName?: string,
+    @Query('search') search?: string,
   ) {
     return this.salaryService.findAll(
       page,
@@ -47,7 +48,7 @@ export class SalaryController {
       minNetSalary,
       workingDays,
       bonus,
-      fullName,
+      fullName || search,
     );
   }
 

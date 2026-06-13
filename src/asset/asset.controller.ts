@@ -30,11 +30,20 @@ export class AssetController {
   @Get()
   findAll(
     @Query('availability') availability: string = '',
+    @Query('status') status: string = '',
+    @Query('type') type: string = '',
     @Query('search') search: string = '',
     @Query('page') page: number,
     @Query('limit') limit: number,
   ) {
-    return this.assetService.findAll(page, limit, availability, search);
+    return this.assetService.findAll(
+      page,
+      limit,
+      availability,
+      search,
+      status,
+      type,
+    );
   }
 
   @Get('user')
