@@ -43,6 +43,19 @@ describe('table filter query params', () => {
     );
   });
 
+  it('passes upcoming interview filters to the applicant service', async () => {
+    const findUpcomingInterviews = jest.fn().mockResolvedValue({ data: [] });
+    const controller = new ApplicantsController({
+      findUpcomingInterviews,
+    } as any);
+    const from = new Date('2026-06-14T00:00:00.000Z');
+    const to = new Date('2026-07-14T00:00:00.000Z');
+
+    await controller.findUpcomingInterviews(from, to, 0, 100);
+
+    expect(findUpcomingInterviews).toHaveBeenCalledWith(from, to, 0, 100);
+  });
+
   it('keeps fullName and supports search for payroll filters', () => {
     const findAll = jest.fn();
     const controller = new SalaryController({ findAll } as any);

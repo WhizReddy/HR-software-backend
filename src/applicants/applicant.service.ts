@@ -30,6 +30,34 @@ import { AuthService } from 'src/auth/auth.service';
 import { NotificationType } from 'src/common/enum/notification.enum';
 import { Auth } from 'src/common/schema/auth.schema';
 
+type UpcomingInterviewPhase =
+  | ApplicantPhase.FIRST_INTERVIEW
+  | ApplicantPhase.SECOND_INTERVIEW;
+
+export interface UpcomingInterview {
+  id: string;
+  applicantId: string;
+  fullName: string;
+  email: string;
+  positionApplied: string;
+  phase: UpcomingInterviewPhase;
+  interviewDate: Date;
+  status: ApplicantStatus;
+}
+
+export interface PaginatedUpcomingInterviewResponse {
+  data: UpcomingInterview[];
+  totalPages: number;
+  all: number;
+}
+
+const parseDateValue = (value?: Date | string | null): Date | null => {
+  if (!value) return null;
+
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 @Injectable()
 export class ApplicantsService {
   private readonly applicantMailTimeoutMs = 10000;
@@ -127,6 +155,109 @@ export class ApplicantsService {
     } catch (error) {
       console.error('Error filtering applicants:', error);
       throw new InternalServerErrorException('Failed to filter applicants');
+    }
+  }
+
+  async findUpcomingInterviews(
+    from?: Date | string,
+    to?: Date | string,
+    page: number = 0,
+    limit: number = 100,
+  ): Promise<PaginatedUpcomingInterviewResponse> {
+    try {
+      const defaultFromDate = new Date();
+      defaultFromDate.setHours(0, 0, 0, 0);
+
+      const fromDate = parseDateValue(from) ?? defaultFromDate;
+      const toDate = parseDateValue(to);
+      const safePage = Math.max(0, Math.floor(Number(page) || 0));
+      const safeLimit = Math.min(
+        500,
+        Math.max(1, Math.floor(Number(limit) || 100)),
+      );
+      const dateFilter = toDate
+        ? { $gte: fromDate, $lte: toDate }
+        : { $gte: fromDate };
+
+      const applicants = await this.applicantModel
+        .find({
+          isDeleted: false,
+          status: ApplicantStatus.ACTIVE,
+          $or: [
+            { firstInterviewDate: dateFilter },
+            { secondInterviewDate: dateFilter },
+          ],
+        })
+        .sort({
+          firstInterviewDate: 1,
+          secondInterviewDate: 1,
+          createdAt: 'desc',
+        });
+
+      const upcomingInterviews = applicants
+        .flatMap((applicant) => {
+          if (applicant.status !== ApplicantStatus.ACTIVE) {
+            return [];
+          }
+
+          const applicantId = (applicant._id as Types.ObjectId).toString();
+          const fullName =
+            [applicant.firstName, applicant.lastName]
+              .filter(Boolean)
+              .join(' ') || 'Candidate';
+
+          const buildInterviewItem = (
+            phase: UpcomingInterviewPhase,
+            interviewDateValue?: Date | string | null,
+          ): UpcomingInterview | null => {
+            const interviewDate = parseDateValue(interviewDateValue);
+
+            if (!interviewDate) return null;
+            if (interviewDate < fromDate) return null;
+            if (toDate && interviewDate > toDate) return null;
+
+            return {
+              id: `${applicantId}-${phase}`,
+              applicantId,
+              fullName,
+              email: applicant.email,
+              positionApplied: applicant.positionApplied,
+              phase,
+              interviewDate,
+              status: applicant.status,
+            };
+          };
+
+          return [
+            buildInterviewItem(
+              ApplicantPhase.FIRST_INTERVIEW,
+              applicant.firstInterviewDate,
+            ),
+            buildInterviewItem(
+              ApplicantPhase.SECOND_INTERVIEW,
+              applicant.secondInterviewDate,
+            ),
+          ].filter(Boolean) as UpcomingInterview[];
+        })
+        .sort(
+          (firstInterview, secondInterview) =>
+            firstInterview.interviewDate.getTime() -
+            secondInterview.interviewDate.getTime(),
+        );
+
+      const offset = safePage * safeLimit;
+      const data = upcomingInterviews.slice(offset, offset + safeLimit);
+
+      return {
+        data,
+        totalPages: Math.ceil(upcomingInterviews.length / safeLimit),
+        all: upcomingInterviews.length,
+      };
+    } catch (error) {
+      console.error('Error fetching upcoming interviews:', error);
+      throw new InternalServerErrorException(
+        'Failed to fetch upcoming interviews',
+      );
     }
   }
 

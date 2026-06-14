@@ -57,6 +57,22 @@ export class ApplicantsController {
   }
 
   @Roles(Role.ADMIN, Role.HR)
+  @Get('interviews/upcoming')
+  async findUpcomingInterviews(
+    @Query('from') from?: Date,
+    @Query('to') to?: Date,
+    @Query('page') page: number = 0,
+    @Query('limit') limit: number = 100,
+  ) {
+    return await this.applicantsService.findUpcomingInterviews(
+      from,
+      to,
+      page,
+      limit,
+    );
+  }
+
+  @Roles(Role.ADMIN, Role.HR)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.applicantsService.findOneForDisplay(id);
