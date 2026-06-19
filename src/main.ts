@@ -33,18 +33,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
   const allowedOrigins = getAllowedOrigins(configService);
+  const firebaseProjectId = configService.getOrThrow<string>(
+    'FIREBASE_PROJECT_ID',
+  );
 
   const adminConfig: ServiceAccount = {
-    projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
+    projectId: firebaseProjectId,
     privateKey: configService
-      .get<string>('FIREBASE_PRIVATE_KEY')
+      .getOrThrow<string>('FIREBASE_PRIVATE_KEY')
       .replace(/\\n/g, '\n'),
-    clientEmail: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
+    clientEmail: configService.getOrThrow<string>('FIREBASE_CLIENT_EMAIL'),
   };
 
   admin.initializeApp({
     credential: admin.credential.cert(adminConfig),
-    databaseURL: `https://${configService.get<string>('FIREBASE_PROJECT_ID')}.firebaseio.com`,
+    databaseURL: `https://${firebaseProjectId}.firebaseio.com`,
   });
 
   app.enableCors({

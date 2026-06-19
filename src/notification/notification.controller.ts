@@ -16,6 +16,17 @@ import { Role } from 'src/common/enum/role.enum';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
+  private assertNotificationAccess(requester: any, userId: string) {
+    const hasElevatedAccess =
+      requester?.role === Role.ADMIN || requester?.role === Role.HR;
+
+    if (!hasElevatedAccess && requester?.sub !== userId) {
+      throw new ForbiddenException(
+        'You can only access your own notifications',
+      );
+    }
+  }
+
   @Roles(Role.ADMIN, Role.HR)
   @Get()
   findAll(): Promise<Notification[]> {
@@ -29,12 +40,7 @@ export class NotificationController {
     @Req() req: any,
   ): Promise<Notification[]> {
     const requester = req['user'];
-    const hasElevatedAccess =
-      requester?.role === Role.ADMIN || requester?.role === Role.HR;
-
-    if (!hasElevatedAccess && requester?.sub !== id) {
-      throw new ForbiddenException('You can only view your own notifications');
-    }
+    this.assertNotificationAccess(requester, id);
 
     return this.notificationService.getNotificationsByUserId(id, period);
   }
@@ -52,15 +58,20 @@ export class NotificationController {
     @Req() req: any,
   ): Promise<Notification> {
     const requester = req['user'];
-    const hasElevatedAccess =
-      requester?.role === Role.ADMIN || requester?.role === Role.HR;
-
-    if (!hasElevatedAccess && requester?.sub !== userId) {
-      throw new ForbiddenException(
-        'You can only update your own notifications',
-      );
-    }
+    this.assertNotificationAccess(requester, userId);
 
     return this.notificationService.update(id, userId);
+  }
+
+  @Patch('user/:id/read-all')
+  markAllAsRead(
+    @Param('id') id: string,
+    @Query('period') period: string,
+    @Req() req: any,
+  ): Promise<{ updated: number }> {
+    const requester = req['user'];
+    this.assertNotificationAccess(requester, id);
+
+    return this.notificationService.markAllAsRead(id, period);
   }
 }

@@ -101,6 +101,28 @@ export class NotificationService {
     }
   }
 
+  async markAllAsRead(
+    userId: string,
+    period: string = 'today',
+  ): Promise<{ updated: number }> {
+    const notifications = await this.getNotificationsByUserId(userId, period);
+    const unreadNotifications = notifications.filter(
+      (notification) => !notification.isRead,
+    );
+
+    await Promise.all(
+      unreadNotifications.map((notification) => {
+        const notificationId = (
+          notification as Notification & { _id: Types.ObjectId }
+        )._id;
+
+        return this.update(notificationId.toString(), userId);
+      }),
+    );
+
+    return { updated: unreadNotifications.length };
+  }
+
   async updateNotification(
     title: string,
     content: string,
@@ -250,7 +272,6 @@ export class NotificationService {
     for (let i = 0; i < notification.length; i++) {
       if (notification[i].readers.some((r) => r.equals(userObjectId))) {
         notification[i].isRead = false;
-        await notification[i].save();
       }
     }
     return notification;
@@ -272,22 +293,7 @@ export class NotificationService {
         date: { $gte: startDate, $lt: endDate },
       })
       .sort({ date: -1 });
-    if (notifications.length > 5) {
-      for (let i = 0; i < notifications.length; i++) {
-        notifications[i].isDeleted = true;
-        notifications[i].isRead = true;
-        await notifications[i].save();
-      }
-      const allCandidates = await this.createNotification(
-        'More than 5 candidates applied',
-        'Check the candidates list',
-        NotificationType.ALLAPPLICANT,
-        new Date(),
-      );
-      return [allCandidates];
-    } else {
-      return notifications;
-    }
+    return notifications;
   }
   private async getNotificationOfPromotion(
     userId: Types.ObjectId,
@@ -334,22 +340,7 @@ export class NotificationService {
         })
         .sort({ date: -1 });
 
-      if (notifications.length > 5) {
-        for (let i = 0; i < notifications.length; i++) {
-          notifications[i].isDeleted = true;
-          notifications[i].isRead = true;
-          await notifications[i].save();
-        }
-        const allLeaveRequests = await this.createNotification(
-          'More than 5 leave requests',
-          'Check the leave requests list',
-          NotificationType.ALLVACATION,
-          new Date(),
-        );
-        return [allLeaveRequests];
-      } else {
-        return notifications;
-      }
+      return notifications;
     } else {
       return this.notificationModel.aggregate([
         {
