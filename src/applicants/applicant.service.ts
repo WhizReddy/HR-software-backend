@@ -601,8 +601,8 @@ export class ApplicantsService {
     switch (emailType) {
       case EmailType.FIRST_INTERVIEW:
         subject = isReschedule
-          ? 'Interview Rescheduled - First Phase'
-          : 'Interview Scheduled - First Phase';
+          ? 'First interview rescheduled'
+          : 'First interview scheduled';
         template = isReschedule
           ? 'interview-rescheduled'
           : 'interview-scheduled';
@@ -621,8 +621,8 @@ export class ApplicantsService {
 
       case EmailType.SECOND_INTERVIEW:
         subject = isReschedule
-          ? 'Interview Rescheduled - Second Phase'
-          : 'Interview Scheduled - Second Phase';
+          ? 'Second interview rescheduled'
+          : 'Second interview scheduled';
         template = isReschedule
           ? 'interview-rescheduled'
           : 'interview-scheduled';
@@ -640,12 +640,12 @@ export class ApplicantsService {
         break;
 
       case EmailType.SUCCESSFUL_APPLICATION:
-        subject = 'Application Received Successfully';
+        subject = 'Application received';
         template = 'successfulApplication';
         break;
 
       case EmailType.REJECTED_APPLICATION:
-        subject = 'Application Status - Rejected';
+        subject = 'Application update';
         template = 'application-rejected';
         break;
 

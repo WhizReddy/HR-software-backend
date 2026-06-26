@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import muv from 'mongoose-unique-validator';
 import { Role } from 'src/common/enum/role.enum';
 import { EngagementType, GradeType, PositionType } from '../enum/position.enum';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 
 @Schema({
   timestamps: true,
@@ -58,6 +58,6 @@ export class User {
 
 const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.plugin(muv);
+UserSchema.plugin(mongooseUniqueValidator);
 
 export { UserSchema };

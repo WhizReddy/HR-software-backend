@@ -6,7 +6,12 @@ import {
   Matches,
   IsEmail,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApplicantStatus } from 'src/common/enum/applicant.enum';
+import {
+  APPLICANT_PHONE_REGEX,
+  normalizeApplicantPhoneNumber,
+} from '../utils/phone';
 
 export class UpdateApplicantDto {
   @IsOptional()
@@ -31,7 +36,10 @@ export class UpdateApplicantDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^6[6-9]\d{7}$/, { message: 'Invalid phone number' })
+  @Transform(({ value }) => normalizeApplicantPhoneNumber(value))
+  @Matches(APPLICANT_PHONE_REGEX, {
+    message: 'Invalid phone number',
+  })
   phoneNumber: string;
 
   @IsOptional()

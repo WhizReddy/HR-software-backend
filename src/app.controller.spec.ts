@@ -15,8 +15,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello Exypnos"', () => {
-      expect(appController.getHello()).toBe('Hello Exypnos');
+    it('should return API metadata', () => {
+      expect(appController.getHello()).toEqual({
+        name: 'People Hub API',
+        status: 'ok',
+      });
     });
   });
 });

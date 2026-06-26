@@ -1,53 +1,49 @@
 <html lang='en'>
-
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>Application Status - Rejected</title>
+    <title>Application update</title>
     <style>
-      body { font-family: Arial, sans-serif; color: #333; line-height: 1.6;
-      background-color: #f9f9f9; margin: 0; padding: 0; } .container {
-      max-width: 700px; margin: 20px auto; border: 1px solid #ddd;
-      border-radius: 8px; background-color: #ffffff; } .header {
-      background-color: #ffffff; text-align: center; padding: 10px 0; } .header
-      img { width: 650px; max-width: 100%; border-radius: 5px; } .content {
-      padding: 30px; } .content h1 { font-size: 24px; color: #333; } .content p
-      { font-size: 16px; color: #333; } .footer { padding: 20px;
-      background-color: #007bff; color: white; text-align: center;
-      border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; } .footer
-      p { font-size: 14px; margin: 10px 0; } .footer a { color: white;
-      text-decoration: underline; }
+      body { margin: 0; padding: 0; background: #f5f7fb; color: #0f172a;
+      font-family: Arial, sans-serif; line-height: 1.6; } .container {
+      max-width: 640px; margin: 24px auto; overflow: hidden; border: 1px solid
+      #e2e8f0; border-radius: 12px; background: #ffffff; } .header { padding:
+      24px 28px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+      .mark { display: inline-block; width: 42px; height: 42px; border-radius:
+      10px; background: #0f172a; color: #ffffff; font-weight: 700; font-size:
+      14px; line-height: 42px; text-align: center; letter-spacing: 0.08em; }
+      .brand { display: inline-flex; align-items: center; gap: 12px; } .brand
+      strong { display: block; font-size: 16px; } .brand span span { display:
+      block; font-size: 12px; color: #64748b; } .content { padding: 28px; } h1
+      { margin: 0 0 14px; font-size: 24px; line-height: 1.25; } p { margin: 0
+      0 16px; font-size: 15px; color: #334155; } .role { padding: 14px; border:
+      1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; } .footer {
+      padding: 18px 28px; border-top: 1px solid #e2e8f0; color: #64748b;
+      font-size: 13px; }
     </style>
   </head>
-
   <body>
     <div class='container'>
       <div class='header'>
-        <img
-          src='https://firebasestorage.googleapis.com/v0/b/exypnos-63ca1.appspot.com/o/images%2Flogo-dark.webp?alt=media'
-          alt='Company Logo'
-        />
+        <div class='brand'>
+          <span class='mark'>PH</span>
+          <span><strong>People Hub</strong><span>Recruitment update</span></span>
+        </div>
       </div>
 
       <div class='content'>
-        <h1>Application Status - Rejected</h1>
-        <p>Dear <strong>{{name}}</strong>,</p>
-        <p>We appreciate your interest in the
+        <h1>Application update</h1>
+        <p>Hello <strong>{{name}}</strong>,</p>
+        <p class='role'>Thank you for your interest in the
           <strong>{{positionApplied}}</strong>
-          position at our company.</p>
-        <p>After careful consideration, we regret to inform you that we have
-          decided to move forward with other candidates at this time.</p>
-        <p>We wish you all the best in your future endeavors.</p>
-        <p>Best regards,</p>
-        <p>The HR Team</p>
+          role.</p>
+        <p>After reviewing the application, the team decided to continue with
+          other candidates for this opening.</p>
+        <p>We appreciate the time you invested and wish you success in your next
+          opportunity.</p>
       </div>
 
-      <div class='footer'>
-        <p>Best regards,<br /><strong>HR Platform</strong></p>
-        <p>Visit our website:
-          <a href='https://#/'>#</a></p>
-      </div>
+      <div class='footer'>Sent by People Hub recruitment.</div>
     </div>
   </body>
-
 </html>

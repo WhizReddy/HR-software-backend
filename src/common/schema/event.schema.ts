@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import muv from 'mongoose-unique-validator';
 import { EventType } from '../enum/event.enum';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 
 @Schema({ timestamps: true })
 export class Event {
@@ -39,5 +39,5 @@ export class Event {
 }
 
 const EventSchema = SchemaFactory.createForClass(Event);
-EventSchema.plugin(muv);
+EventSchema.plugin(mongooseUniqueValidator);
 export { EventSchema };

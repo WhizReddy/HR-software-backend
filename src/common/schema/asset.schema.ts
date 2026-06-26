@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import muv from 'mongoose-unique-validator';
 import { AssetStatus } from '../enum/asset.enum';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 import { User } from './user.schema';
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
 
@@ -76,5 +76,5 @@ export class Asset {
   isDeleted: boolean;
 }
 const AssetSchema = SchemaFactory.createForClass(Asset);
-AssetSchema.plugin(muv);
+AssetSchema.plugin(mongooseUniqueValidator);
 export { AssetSchema };

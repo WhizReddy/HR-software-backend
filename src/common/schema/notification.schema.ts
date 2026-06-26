@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import muv from 'mongoose-unique-validator';
 import { NotificationType } from '../enum/notification.enum';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 
 @Schema({ timestamps: true })
 export class Notification {
@@ -31,5 +31,5 @@ export class Notification {
 }
 
 const NotificationSchema = SchemaFactory.createForClass(Notification);
-NotificationSchema.plugin(muv);
+NotificationSchema.plugin(mongooseUniqueValidator);
 export { NotificationSchema };

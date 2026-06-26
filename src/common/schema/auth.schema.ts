@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import muv from 'mongoose-unique-validator';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 
 @Schema({
   timestamps: true,
@@ -22,6 +22,6 @@ export class Auth {
 
 const AuthSchema = SchemaFactory.createForClass(Auth);
 
-AuthSchema.plugin(muv);
+AuthSchema.plugin(mongooseUniqueValidator);
 
 export { AuthSchema };

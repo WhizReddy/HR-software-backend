@@ -8,7 +8,12 @@ import {
   ValidatorConstraintInterface,
   Validate,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { DateTime } from 'luxon';
+import {
+  APPLICANT_PHONE_REGEX,
+  normalizeApplicantPhoneNumber,
+} from '../utils/phone';
 
 @ValidatorConstraint({ name: 'isValidDob', async: false })
 class IsValidDobConstraint implements ValidatorConstraintInterface {
@@ -45,7 +50,10 @@ export class CreateApplicantDto {
   dob: string;
 
   @IsNotEmpty()
-  @Matches(/^6[6-9]\d{7}$/, { message: 'Invalid phone number' })
+  @Transform(({ value }) => normalizeApplicantPhoneNumber(value))
+  @Matches(APPLICANT_PHONE_REGEX, {
+    message: 'Invalid phone number',
+  })
   phoneNumber: string;
 
   @IsNotEmpty()

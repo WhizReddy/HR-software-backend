@@ -6,6 +6,9 @@ export class AppController {
   @Public()
   @Get()
   getHello() {
-    return 'Hello Exypnos';
+    return {
+      name: 'People Hub API',
+      status: 'ok',
+    };
   }
 }

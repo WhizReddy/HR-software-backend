@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import muv from 'mongoose-unique-validator';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 import { User } from './user.schema';
 
 @Schema({ timestamps: true })
@@ -29,5 +29,5 @@ export class Note extends Document {
 }
 
 const NoteSchema = SchemaFactory.createForClass(Note);
-NoteSchema.plugin(muv);
+NoteSchema.plugin(mongooseUniqueValidator);
 export { NoteSchema };

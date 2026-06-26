@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import muv from 'mongoose-unique-validator';
 import { VacationStatus, VacationType } from '../enum/vacation.enum';
+import { mongooseUniqueValidator } from './unique-validator.plugin';
 import { User } from './user.schema';
 
 @Schema({
@@ -35,5 +35,5 @@ export class Vacation {
 }
 
 const VacationSchema = SchemaFactory.createForClass(Vacation);
-VacationSchema.plugin(muv);
+VacationSchema.plugin(mongooseUniqueValidator);
 export { VacationSchema };

@@ -16,9 +16,9 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello Exypnos');
+    return request(app.getHttpServer()).get('/').expect(200).expect({
+      name: 'People Hub API',
+      status: 'ok',
+    });
   });
 });

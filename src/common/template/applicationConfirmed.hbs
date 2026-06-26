@@ -1,54 +1,53 @@
 <html lang='en'>
-
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>Confirm your Email</title>
+    <title>Application confirmed</title>
     <style>
-      body { font-family: Arial, sans-serif; color: #333; line-height: 1.6;
-      background-color: #f9f9f9; margin: 0; padding: 0; } .container {
-      max-width: 700px; margin: 20px auto; border: 1px solid #ddd;
-      border-radius: 8px; background-color: #ffffff; } .header {
-      background-color: #ffffff; text-align: center; padding: 10px 0; } .header
-      img { width: 650px; max-width: 100%; border-radius: 5px; } .content {
-      padding: 30px; } .content h1 { font-size: 24px; color: #333; } .content p
-      { font-size: 16px; color: #333; } .content a { background-color: #007bff;
-      color: white; padding: 15px 30px; text-decoration: none; border-radius:
-      50px; display: inline-block; margin-top: 20px; } .footer { padding: 20px;
-      background-color: #007bff; color: white; text-align: center;
-      border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; } .footer
-      p { font-size: 14px; margin: 10px 0; } .footer a { color: white;
-      text-decoration: underline; }
+      body { margin: 0; padding: 0; background: #f5f7fb; color: #0f172a;
+      font-family: Arial, sans-serif; line-height: 1.6; } .container {
+      max-width: 640px; margin: 24px auto; overflow: hidden; border: 1px solid
+      #e2e8f0; border-radius: 12px; background: #ffffff; } .header { padding:
+      24px 28px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+      .mark { display: inline-block; width: 42px; height: 42px; border-radius:
+      10px; background: #0f172a; color: #ffffff; font-weight: 700; font-size:
+      14px; line-height: 42px; text-align: center; letter-spacing: 0.08em; }
+      .brand { display: inline-flex; align-items: center; gap: 12px; } .brand
+      strong { display: block; font-size: 16px; } .brand span span { display:
+      block; font-size: 12px; color: #64748b; } .content { padding: 28px; } h1
+      { margin: 0 0 14px; font-size: 24px; line-height: 1.25; } p { margin: 0
+      0 16px; font-size: 15px; color: #334155; } .button { display:
+      inline-block; margin-top: 8px; padding: 12px 18px; border-radius: 8px;
+      background: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700;
+      text-decoration: none; } .footer { padding: 18px 28px; border-top: 1px
+      solid #e2e8f0; color: #64748b; font-size: 13px; }
     </style>
   </head>
-
   <body>
     <div class='container'>
       <div class='header'>
-        <img
-          src='https://firebasestorage.googleapis.com/v0/b/exypnos-63ca1.appspot.com/o/images%2Flogo-dark.webp?alt=media'
-          alt='Company Logo'
-        />
+        <div class='brand'>
+          <span class='mark'>PH</span>
+          <span><strong>People Hub</strong><span>Recruitment review</span></span>
+        </div>
       </div>
 
       <div class='content'>
-        <p>Hello {{name}},</p>
-
+        <h1>Application confirmation needed</h1>
+        <p>Hello <strong>{{name}}</strong>,</p>
         <p>Thank you for applying for the
-          {{positionApplied}}
-          position at our company.</p>
+          <strong>{{positionApplied}}</strong>
+          role.</p>
+        <p>Confirm your email address to keep your application active for HR
+          review.</p>
 
-        <p>Please confirm your application by clicking the link below:</p>
+        <a class='button' href='{{confirmationUrl}}'>Confirm application</a>
 
-        <a href='{{confirmationUrl}}'>Confirm Application</a>
-
-        <p>If you did not apply for this position, please ignore this email.</p>
+        <p style='margin-top: 20px; font-size: 13px; color: #64748b;'>If you did
+          not apply for this role, no action is needed.</p>
       </div>
 
-      <div class='footer'>
-        <p>Best regards,<br /><strong>HR Platform</strong></p>
-      </div>
+      <div class='footer'>Sent by People Hub recruitment.</div>
     </div>
   </body>
-
 </html>

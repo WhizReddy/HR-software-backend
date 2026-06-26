@@ -60,7 +60,7 @@ export class AuthService {
       try {
         await this.mailService.sendMail({
           to: createUserDto.email,
-          subject: 'Welcome to HR Platform',
+          subject: 'Welcome to People Hub',
           template: 'welcome',
           context: {
             name: `${createUserDto.firstName} ${createUserDto.lastName}`,
@@ -150,7 +150,7 @@ export class AuthService {
 
       await this.mailService.sendMail({
         to: email,
-        subject: 'Password Reset Request',
+        subject: 'Reset your People Hub password',
         template: 'resetPassword',
         context: {
           name: email,

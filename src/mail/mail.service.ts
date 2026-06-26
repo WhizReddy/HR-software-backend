@@ -167,7 +167,7 @@ export class MailService {
     }
 
     const senderName =
-      this.configService.get<string>('BREVO_SENDER_NAME') ?? 'HR Platform';
+      this.configService.get<string>('BREVO_SENDER_NAME') ?? 'People Hub';
 
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',

@@ -14,6 +14,10 @@ npm run start:dev
 
 - `GET /health`
 
+## API Root
+
+- `GET /` returns basic API metadata, for example `{ "name": "People Hub API", "status": "ok" }`.
+
 ## Free Deployment (Render)
 
 1. Push this repository to GitHub.
@@ -45,4 +49,5 @@ Runs on pushes/PRs:
 
 - Render free tier may sleep after inactivity.
 - Set `FRONT_URL` to your Vercel app URL.
+- Production must define `MONGODB_URI`, `JWT_SECRET`, and the required Firebase variables listed in `.env.example`.
 - Brevo sender verification is suitable for temporary testing on free tier, but a real domain is still recommended for better delivery.
