@@ -540,7 +540,7 @@ export class ApplicantsService {
         }
       }
 
-      if (updateApplicantDto.notes) {
+      if (updateApplicantDto.notes !== undefined) {
         applicant.notes = updateApplicantDto.notes;
       }
 

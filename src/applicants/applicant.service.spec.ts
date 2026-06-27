@@ -125,3 +125,30 @@ describe('ApplicantsService upcoming interviews', () => {
     expect(result.data[0].id).toBe('second-first_interview');
   });
 });
+
+describe('ApplicantsService applicant updates', () => {
+  it('allows interview notes to be cleared', async () => {
+    const applicant = {
+      isDeleted: false,
+      notes: 'Old interview note',
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    applicant.save.mockResolvedValue(applicant);
+
+    const service = new ApplicantsService(
+      { findById: jest.fn().mockResolvedValue(applicant) } as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+    );
+
+    await expect(
+      service.updateApplicant('applicant-id', { notes: '' } as any),
+    ).resolves.toBe(applicant);
+
+    expect(applicant.notes).toBe('');
+    expect(applicant.save).toHaveBeenCalledTimes(1);
+  });
+});
