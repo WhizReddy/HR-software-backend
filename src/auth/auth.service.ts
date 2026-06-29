@@ -173,10 +173,7 @@ export class AuthService {
       const hashedToken = this.hashResetToken(token);
 
       const userAuth = await this.authModel.findOne({
-        $or: [
-          { resetPasswordToken: hashedToken },
-          { resetPasswordToken: token },
-        ],
+        resetPasswordToken: hashedToken,
         resetPasswordExpires: { $gt: Date.now() },
       });
 

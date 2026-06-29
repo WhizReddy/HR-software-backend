@@ -1,6 +1,33 @@
-# HR Software Backend
+# People Hub HR Software Backend
 
-NestJS backend for HR software.
+NestJS backend for the People Hub HR platform. It provides REST APIs for
+authentication, employees, recruitment, interview scheduling, vacation requests,
+salary/payroll records, HR events, career posts, notifications, notes, asset
+inventory, file upload, and deployment health checks.
+
+## Tech Stack
+
+- NestJS and TypeScript
+- MongoDB with Mongoose schemas
+- JWT authentication and role-based guards
+- bcrypt password hashing
+- Firebase Admin Storage for uploaded files
+- Handlebars email templates with Brevo, Resend, or SMTP delivery
+- Jest and Supertest-compatible test setup
+
+## Main Modules
+
+- `AuthModule`: sign-in, employee signup, password update, forgot/reset password.
+- `UserModule`: employee profiles, profile images, user list/search.
+- `ApplicantsModule`: public recruitment submission, confirmation, candidate
+  phases, interviews, notes, custom candidate emails.
+- `VacationModule`: vacation requests and HR approval/rejection.
+- `SalaryModule`: payroll/salary records and individual salary views.
+- `EventsModule`: HR events and public career posts.
+- `NotificationModule`: notification aggregation and mark-read actions.
+- `AssetModule`: inventory, holdings, assignment, return history.
+- `FirebaseModule`: file upload, signed private file access, cleanup.
+- `MailModule`: email template rendering and provider delivery.
 
 ## Local Development
 
@@ -10,6 +37,20 @@ cp .env.example .env
 npm run start:dev
 ```
 
+Required environment values are listed in `.env.example`. At minimum,
+production must set:
+
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_PRIVATE_KEY`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_BUCKETNAME`
+- `FRONT_URL`
+
+Email delivery can use Brevo, Resend, or SMTP depending on the configured
+environment variables.
+
 ## Health Check
 
 - `GET /health`
@@ -17,6 +58,18 @@ npm run start:dev
 ## API Root
 
 - `GET /` returns basic API metadata, for example `{ "name": "People Hub API", "status": "ok" }`.
+
+## Quality Checks
+
+Run these before pushing or deploying:
+
+```bash
+npm run lint:check
+npm test
+npm run build
+```
+
+Use `npm ci` when installing dependencies from a clean checkout or in CI.
 
 ## Free Deployment (Render)
 
@@ -43,6 +96,9 @@ Optional: use `render.yaml` in this repo for Blueprint setup.
 Workflow: `.github/workflows/backend-ci.yml`
 
 Runs on pushes/PRs:
+- `npm ci`
+- `npm run lint:check`
+- `npm test`
 - `npm run build`
 
 ## Notes
@@ -51,3 +107,5 @@ Runs on pushes/PRs:
 - Set `FRONT_URL` to your Vercel app URL.
 - Production must define `MONGODB_URI`, `JWT_SECRET`, and the required Firebase variables listed in `.env.example`.
 - Brevo sender verification is suitable for temporary testing on free tier, but a real domain is still recommended for better delivery.
+- Password reset stores only hashed reset tokens and clears them after a
+  successful reset.
